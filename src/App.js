@@ -109,9 +109,8 @@ function Beranda({ data, setPage }) {
   return (
     <div>
       {/* ── HERO ── */}
-      <div style={{background:"#0F6E56",padding:"60px 20px 0",textAlign:"center",color:"#fff",overflow:"hidden",position:"relative"}}>
-        <div style={{position:"absolute",top:-60,right:-60,width:220,height:220,borderRadius:"50%",background:"rgba(255,255,255,0.05)"}} />
-        <div style={{position:"absolute",bottom:20,left:-40,width:160,height:160,borderRadius:"50%",background:"rgba(255,255,255,0.04)"}} />
+      <div style={{backgroundImage:"url('/hero.jpg')",backgroundSize:"cover",backgroundPosition:"center",padding:"60px 20px 0",textAlign:"center",color:"#fff",overflow:"hidden",position:"relative"}}>
+        <div style={{position:"absolute",inset:0,background:"rgba(15,110,86,0.78)"}} />
         <div style={{maxWidth:720,margin:"0 auto",position:"relative"}}>
           <div style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(255,255,255,0.15)",borderRadius:20,padding:"5px 14px",fontSize:12,marginBottom:18}}>
             <span style={{width:6,height:6,borderRadius:"50%",background:"#9FE1CB",display:"inline-block"}} />
