@@ -114,18 +114,18 @@ function Beranda({ data, setPage }) {
         <div style={{maxWidth:720,margin:"0 auto",position:"relative"}}>
           <div style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(255,255,255,0.15)",borderRadius:20,padding:"5px 14px",fontSize:12,marginBottom:18}}>
             <span style={{width:6,height:6,borderRadius:"50%",background:"#9FE1CB",display:"inline-block"}} />
-            Aktif sejak 2019 · 5 tahun bergerak bersama warga
+            Aktif sejak {data.profil.berdiri} · {new Date().getFullYear() - parseInt(data.profil.berdiri)} tahun bergerak bersama warga
           </div>
-          <h1 style={{fontSize:34,fontWeight:500,margin:"0 0 10px",lineHeight:1.25}}>Karang Taruna RW 02 Kalisari</h1>
-          <p style={{fontSize:16,opacity:0.85,margin:"0 0 10px",fontWeight:400}}><em>Hati, Aksi, Mandiri</em></p>
-          <p style={{fontSize:14,opacity:0.75,margin:"0 0 30px",lineHeight:1.7,maxWidth:560,marginLeft:"auto",marginRight:"auto"}}>Organisasi dari masyarakat yang bergerak karena hati menciptakan sebuah aksi untuk masyarakat dan menciptakan kemandirian.</p>
+          <h1 style={{fontSize:34,fontWeight:500,margin:"0 0 10px",lineHeight:1.25}}>{data.profil.nama}</h1>
+          <p style={{fontSize:16,opacity:0.85,margin:"0 0 10px",fontWeight:400}}><em>{data.profil.tagline}</em></p>
+          <p style={{fontSize:14,opacity:0.75,margin:"0 0 30px",lineHeight:1.7,maxWidth:560,marginLeft:"auto",marginRight:"auto"}}>{data.profil.deskripsi}</p>
           <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap",marginBottom:40}}>
             <button onClick={()=>setPage("Kegiatan")} style={{background:"#fff",color:"#0F6E56",border:"none",padding:"10px 22px",borderRadius:8,cursor:"pointer",fontWeight:500,fontSize:14}}>Lihat Kegiatan</button>
             <button onClick={()=>setPage("Profil")} style={{background:"transparent",color:"#fff",border:"1.5px solid rgba(255,255,255,0.5)",padding:"10px 22px",borderRadius:8,cursor:"pointer",fontSize:14}}>Tentang Kami</button>
           </div>
           {/* Stats bar */}
           <div style={{background:"rgba(255,255,255,0.1)",borderRadius:"12px 12px 0 0",padding:"20px 24px",display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,textAlign:"center"}}>
-            {[{v:"2019",l:"Tahun Berdiri"},{v:data.profil.anggota,l:"Anggota Aktif"},{v:data.profil.kegiatan,l:"Total Kegiatan"},{v:data.profil.penghargaan,l:"Penghargaan"}].map(s=>(
+            {[{v:data.profil.berdiri,l:"Tahun Berdiri"},{v:data.profil.anggota,l:"Anggota Aktif"},{v:data.profil.kegiatan,l:"Total Kegiatan"},{v:data.profil.penghargaan,l:"Penghargaan"}].map(s=>(
               <div key={s.l}>
                 <div style={{fontSize:22,fontWeight:500}}>{s.v}</div>
                 <div style={{fontSize:11,opacity:0.7,marginTop:2}}>{s.l}</div>
