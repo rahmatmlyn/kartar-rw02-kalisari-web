@@ -515,17 +515,7 @@ function Galeri({ data }) {
 }
 
 // ── PENGURUS ──────────────────────────────────────────────────────────
-function OrgNode({ p, size=44 }) {
-  return (
-    <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,minWidth:100,maxWidth:130}}>
-      <Avatar nama={p.nama} size={size} />
-      <div style={{textAlign:"center"}}>
-        <div style={{fontWeight:500,fontSize:12,color:"#1a1a18",lineHeight:1.3}}>{p.nama}</div>
-        <div style={{fontSize:10,color:"#185FA5",marginTop:2}}>{p.jabatan}</div>
-      </div>
-    </div>
-  );
-}
+
 
 function StrukturOrganisasi({ pengurus }) {
   const isMobile = useIsMobile();
