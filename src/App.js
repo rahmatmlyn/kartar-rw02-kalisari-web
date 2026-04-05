@@ -518,14 +518,23 @@ function Field({ label, val, onChange, type="text", textarea=false }) {
 function AdminPanel({ data, setData, onLogout }) {
   const [tab, setTab] = useState("profil");
   const [msg, setMsg] = useState("");
-  const save = (newData) => { setData(newData); setMsg("Tersimpan!"); setTimeout(()=>setMsg(""),2000); };
+  const save = async (newData) => {
+    setMsg("Menyimpan...");
+    try {
+      await setData(newData);
+      setMsg("Tersimpan!");
+    } catch (e) {
+      setMsg("Gagal menyimpan: " + e.message);
+    }
+    setTimeout(() => setMsg(""), 3000);
+  };
   return (
     <div style={{maxWidth:1000,margin:"0 auto",padding:"24px 20px"}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
         <div><div style={{fontWeight:500,fontSize:18}}>Panel Admin</div><div style={{fontSize:13,color:"#888780"}}>Kelola konten website</div></div>
         <button onClick={onLogout} style={{background:"transparent",border:"0.5px solid #ddd",padding:"7px 16px",borderRadius:8,cursor:"pointer",fontSize:13,color:"#888780"}}>Keluar</button>
       </div>
-      {msg && <div style={{background:"#EAF3DE",color:"#27500A",padding:"10px 16px",borderRadius:8,marginBottom:16,fontSize:13}}>{msg}</div>}
+      {msg && <div style={{background:msg.startsWith("Gagal")?"#FAECE7":"#EAF3DE",color:msg.startsWith("Gagal")?"#993C1D":"#27500A",padding:"10px 16px",borderRadius:8,marginBottom:16,fontSize:13}}>{msg}</div>}
       <div style={{display:"flex",gap:6,marginBottom:24,borderBottom:"0.5px solid #e8e8e5",paddingBottom:12,flexWrap:"wrap"}}>
         {[["profil","Profil"],["kegiatan","Kegiatan"],["galeri","Galeri"],["pengurus","Pengurus"],["penghargaan","Penghargaan"]].map(([k,l])=>(
           <button key={k} onClick={()=>setTab(k)} style={{background:tab===k?"#EAF3DE":"transparent",color:tab===k?"#27500A":"#5F5E5A",border:"none",padding:"7px 16px",borderRadius:6,cursor:"pointer",fontSize:13,fontWeight:tab===k?500:400}}>{l}</button>
@@ -748,11 +757,7 @@ export default function App() {
 
   const saveData = async (nd) => {
     setData(nd);
-    try {
-      await fbSave(nd);
-    } catch (e) {
-      console.error("Gagal simpan:", e);
-    }
+    await fbSave(nd);
   };
 
   if(mode==="login") return <Login onBack={()=>setMode("public")} onSuccess={()=>{setIsAdmin(true);setMode("admin");}} />;
