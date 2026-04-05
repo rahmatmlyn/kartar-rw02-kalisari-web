@@ -1,25 +1,776 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState, useEffect } from "react";
+import { getData, saveData as fbSave } from "./firebase";
 
-function App() {
+const ADMIN_PASS = "kartar2024";
+
+const initData = {
+  profil: {
+    nama: "Karang Taruna RW 02 Kalisari",
+    tagline: "Bersatu, Bergerak, Berkembang",
+    deskripsi: "Karang Taruna RW 02 Kalisari adalah organisasi kepemudaan yang berdiri sejak 2019 dan telah aktif bergerak selama 5 tahun dalam bidang sosial, seni budaya, olahraga, dan pemberdayaan masyarakat. Kami berkomitmen untuk menjadi wadah kreativitas dan kepedulian pemuda demi lingkungan RW 02 yang lebih maju dan harmonis.",
+    berdiri: "2019", anggota: "85+", kegiatan: "50+", penghargaan: "3",
+    visi: "Menjadi organisasi kepemudaan yang mandiri, kreatif, dan berdaya guna dalam membangun masyarakat RW 02 Kalisari yang sejahtera dan harmonis.",
+    misi: ["Menghimpun dan mengembangkan potensi pemuda RW 02 Kalisari", "Menggerakkan partisipasi aktif pemuda dalam pembangunan sosial kemasyarakatan", "Menyelenggarakan kegiatan yang bermanfaat di bidang sosial, seni, olahraga dan pendidikan", "Membangun kerja sama antar warga dan lembaga untuk kemajuan bersama"],
+  },
+  pengurus: [
+    { id: 1, nama: "Ahmad Fauzi", jabatan: "Ketua", periode: "2023–2025", foto: "" },
+    { id: 2, nama: "Siti Rahayu", jabatan: "Wakil Ketua", periode: "2023–2025", foto: "" },
+    { id: 3, nama: "Budi Santoso", jabatan: "Sekretaris", periode: "2023–2025", foto: "" },
+    { id: 4, nama: "Dewi Lestari", jabatan: "Bendahara", periode: "2023–2025", foto: "" },
+    { id: 5, nama: "Rizky Pratama", jabatan: "Koordinator Sosial", periode: "2023–2025", foto: "" },
+    { id: 6, nama: "Nisa Amalia", jabatan: "Koordinator Seni & Budaya", periode: "2023–2025", foto: "" },
+  ],
+  kegiatan: [
+    { id: 1, judul: "HUT RI ke-79 RW 02", kategori: "Kemasyarakatan", tanggal: "2024-08-17", deskripsi: "Peringatan HUT RI dengan berbagai lomba dan pentas seni warga.", foto: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400&q=80", link: "https://www.instagram.com/kartarr_02/" },
+    { id: 2, judul: "Turnamen Futsal Antar RW", kategori: "Olahraga", tanggal: "2024-06-10", deskripsi: "Turnamen futsal antar pemuda RW se-kelurahan Kalisari.", foto: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&q=80", link: "https://www.instagram.com/kartarr_02/" },
+    { id: 3, judul: "Bakti Sosial Ramadan", kategori: "Sosial", tanggal: "2024-03-25", deskripsi: "Pembagian 200 paket sembako untuk warga kurang mampu di lingkungan RW 02.", foto: "https://images.unsplash.com/photo-1593113598332-cd59a0c3a9a1?w=400&q=80", link: "https://www.instagram.com/kartarr_02/" },
+    { id: 4, judul: "Pelatihan Digital Marketing", kategori: "Pendidikan", tanggal: "2024-01-15", deskripsi: "Workshop digital marketing untuk pemuda guna meningkatkan wirausaha berbasis digital.", foto: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&q=80", link: "https://www.instagram.com/kartarr_02/" },
+    { id: 5, judul: "Pentas Seni Akhir Tahun", kategori: "Seni & Budaya", tanggal: "2023-12-31", deskripsi: "Pentas seni malam pergantian tahun menampilkan tarian daerah dan musik.", foto: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80", link: "https://www.youtube.com/@karangtarunarw02kalisari70" },
+    { id: 6, judul: "Kerja Bakti Lingkungan", kategori: "Sosial", tanggal: "2023-11-05", deskripsi: "Gotong royong bersih-bersih lingkungan RW 02 dan penanaman pohon.", foto: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80", link: "https://www.instagram.com/kartarr_02/" },
+  ],
+  galeri: [
+    { id: 1, url: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=400&q=80", caption: "HUT RI ke-79" },
+    { id: 2, url: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&q=80", caption: "Turnamen Futsal" },
+    { id: 3, url: "https://images.unsplash.com/photo-1593113598332-cd59a0c3a9a1?w=400&q=80", caption: "Bakti Sosial Ramadan" },
+    { id: 4, url: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&q=80", caption: "Pelatihan Digital" },
+    { id: 5, url: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&q=80", caption: "Pentas Seni" },
+    { id: 6, url: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80", caption: "Kerja Bakti" },
+  ],
+  penghargaan: [
+    { id: 1, judul: "Karang Taruna Terbaik Kelurahan Kalisari", penyelenggara: "Kelurahan Kalisari", tahun: "2023", deskripsi: "Penghargaan atas konsistensi dan inovasi program sosial kemasyarakatan.", tingkat: "Kelurahan" },
+    { id: 2, judul: "Juara 1 Lomba Kebersihan Lingkungan", penyelenggara: "Kecamatan Pasar Rebo", tahun: "2022", deskripsi: "Penghargaan atas program kerja bakti dan penghijauan lingkungan RW 02.", tingkat: "Kecamatan" },
+    { id: 3, judul: "Penghargaan Program Kepemudaan Inovatif", penyelenggara: "Suku Dinas Pemuda & Olahraga Jakarta Timur", tahun: "2022", deskripsi: "Diraih atas program pelatihan digital marketing untuk pemuda yang berdampak luas.", tingkat: "Kota" },
+  ]
+};
+
+const CATS = ["Semua","Kemasyarakatan","Olahraga","Sosial","Pendidikan","Seni & Budaya"];
+const katColor = { Kemasyarakatan:"#0F6E56", Olahraga:"#185FA5", Sosial:"#993C1D", Pendidikan:"#533AB7", "Seni & Budaya":"#993556", default:"#5F5E5A" };
+const katBg = { Kemasyarakatan:"#E1F5EE", Olahraga:"#E6F1FB", Sosial:"#FAECE7", Pendidikan:"#EEEDFE", "Seni & Budaya":"#FBEAF0", default:"#F1EFE8" };
+const tingkatColor = { Kelurahan:"#185FA5", Kecamatan:"#0F6E56", Kota:"#854F0B", Nasional:"#993C1D" };
+const tingkatBg = { Kelurahan:"#E6F1FB", Kecamatan:"#E1F5EE", Kota:"#FAEEDA", Nasional:"#FAECE7" };
+
+function Avatar({ nama, size=44 }) {
+  const initials = nama.split(" ").slice(0,2).map(w=>w[0]).join("").toUpperCase();
+  const colors = ["#185FA5","#0F6E56","#533AB7","#993C1D","#993556","#3B6D11"];
+  const bg = colors[nama.charCodeAt(0) % colors.length];
+  return <div style={{width:size,height:size,borderRadius:"50%",background:bg,color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:500,fontSize:size*0.3,flexShrink:0}}>{initials}</div>;
+}
+function Badge({ kat }) {
+  return <span style={{background:katBg[kat]||katBg.default,color:katColor[kat]||katColor.default,fontSize:11,fontWeight:500,padding:"3px 8px",borderRadius:6}}>{kat}</span>;
+}
+function TingkatBadge({ t }) {
+  return <span style={{background:tingkatBg[t]||"#F1EFE8",color:tingkatColor[t]||"#5F5E5A",fontSize:11,fontWeight:500,padding:"3px 10px",borderRadius:12}}>{t}</span>;
+}
+
+// ── NAVBAR ────────────────────────────────────────────────────────────
+function Navbar({ page, setPage, isAdmin, setMode }) {
+  const nav = ["Beranda","Profil","Kegiatan","Galeri","Pengurus","Penghargaan","Kontak"];
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <nav style={{background:"#fff",borderBottom:"0.5px solid #e2e2e0",position:"sticky",top:0,zIndex:100}}>
+      <div style={{maxWidth:1100,margin:"0 auto",padding:"0 16px",display:"flex",alignItems:"center",justifyContent:"space-between",height:54}}>
+        <div style={{display:"flex",alignItems:"center",gap:9}}>
+          <div style={{width:34,height:34,borderRadius:8,background:"#0F6E56",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:500,fontSize:13}}>KT</div>
+          <span style={{fontWeight:500,fontSize:13,color:"#1a1a18"}}>Kartar RW 02 Kalisari</span>
+        </div>
+        <div style={{display:"flex",gap:2,alignItems:"center",flexWrap:"wrap"}}>
+          {nav.map(n=>(
+            <button key={n} onClick={()=>setPage(n)} style={{background:page===n?"#EAF3DE":"transparent",color:page===n?"#3B6D11":"#5F5E5A",border:"none",padding:"5px 10px",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:page===n?500:400}}>{n}</button>
+          ))}
+          {isAdmin
+            ? <button onClick={()=>setMode("admin")} style={{marginLeft:6,background:"#0F6E56",color:"#fff",border:"none",padding:"6px 12px",borderRadius:6,cursor:"pointer",fontSize:12}}>Panel Admin</button>
+            : <button onClick={()=>setMode("login")} style={{marginLeft:6,background:"transparent",color:"#5F5E5A",border:"0.5px solid #ccc",padding:"6px 12px",borderRadius:6,cursor:"pointer",fontSize:12}}>Admin</button>
+          }
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+// ── BERANDA (REDESIGNED) ──────────────────────────────────────────────
+function Beranda({ data, setPage }) {
+  const recent = [...data.kegiatan].sort((a,b)=>b.tanggal.localeCompare(a.tanggal)).slice(0,3);
+  const bidang = [
+    { icon:"🤝", label:"Sosial & Kemasyarakatan", desc:"Bakti sosial, santunan, dan program kemanusiaan untuk warga RW 02", color:"#FAECE7", tc:"#993C1D" },
+    { icon:"🎭", label:"Seni & Budaya", desc:"Pentas seni, festival budaya, dan pelestarian tradisi lokal", color:"#FBEAF0", tc:"#993556" },
+    { icon:"⚽", label:"Olahraga", desc:"Turnamen, senam pagi, dan kegiatan olahraga rutin bagi pemuda", color:"#E6F1FB", tc:"#185FA5" },
+    { icon:"📚", label:"Pendidikan", desc:"Workshop, pelatihan skill, dan program literasi digital pemuda", color:"#EEEDFE", tc:"#533AB7" },
+    { icon:"🌿", label:"Lingkungan Hidup", desc:"Kerja bakti, penghijauan, dan pengelolaan kebersihan lingkungan", color:"#EAF3DE", tc:"#3B6D11" },
+    { icon:"💼", label:"Kewirausahaan", desc:"Pemberdayaan ekonomi pemuda melalui program wirausaha mandiri", color:"#FAEEDA", tc:"#854F0B" },
+  ];
+  const timeline = [
+    { tahun:"2019", label:"Berdiri", desc:"Karang Taruna RW 02 resmi dibentuk dengan 20 anggota perdana" },
+    { tahun:"2020", label:"Berkembang", desc:"Program sosial perdana di masa pandemi, distribusi sembako ke warga terdampak" },
+    { tahun:"2021", label:"Berinovasi", desc:"Peluncuran program pelatihan digital dan media sosial organisasi" },
+    { tahun:"2022", label:"Berprestasi", desc:"Raih 2 penghargaan tingkat kecamatan dan kota" },
+    { tahun:"2023", label:"Terbaik", desc:"Dinobatkan Karang Taruna Terbaik Kelurahan Kalisari" },
+    { tahun:"2024", label:"Terus Bergerak", desc:"50+ program terlaksana, 85+ anggota aktif, dampak semakin luas" },
+  ];
+
+  return (
+    <div>
+      {/* ── HERO ── */}
+      <div style={{background:"#0F6E56",padding:"60px 20px 0",textAlign:"center",color:"#fff",overflow:"hidden",position:"relative"}}>
+        <div style={{position:"absolute",top:-60,right:-60,width:220,height:220,borderRadius:"50%",background:"rgba(255,255,255,0.05)"}} />
+        <div style={{position:"absolute",bottom:20,left:-40,width:160,height:160,borderRadius:"50%",background:"rgba(255,255,255,0.04)"}} />
+        <div style={{maxWidth:720,margin:"0 auto",position:"relative"}}>
+          <div style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(255,255,255,0.15)",borderRadius:20,padding:"5px 14px",fontSize:12,marginBottom:18}}>
+            <span style={{width:6,height:6,borderRadius:"50%",background:"#9FE1CB",display:"inline-block"}} />
+            Aktif sejak 2019 · 5 tahun bergerak bersama warga
+          </div>
+          <h1 style={{fontSize:34,fontWeight:500,margin:"0 0 10px",lineHeight:1.25}}>Karang Taruna RW 02 Kalisari</h1>
+          <p style={{fontSize:16,opacity:0.85,margin:"0 0 10px",fontWeight:400}}><em>Bersatu, Bergerak, Berkembang</em></p>
+          <p style={{fontSize:14,opacity:0.75,margin:"0 0 30px",lineHeight:1.7,maxWidth:560,marginLeft:"auto",marginRight:"auto"}}>Wadah pemuda RW 02 Kalisari yang bergerak di bidang sosial, seni budaya, olahraga, pendidikan, dan lingkungan hidup — berdampak nyata sejak 2019.</p>
+          <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap",marginBottom:40}}>
+            <button onClick={()=>setPage("Kegiatan")} style={{background:"#fff",color:"#0F6E56",border:"none",padding:"10px 22px",borderRadius:8,cursor:"pointer",fontWeight:500,fontSize:14}}>Lihat Kegiatan</button>
+            <button onClick={()=>setPage("Profil")} style={{background:"transparent",color:"#fff",border:"1.5px solid rgba(255,255,255,0.5)",padding:"10px 22px",borderRadius:8,cursor:"pointer",fontSize:14}}>Tentang Kami</button>
+          </div>
+          {/* Stats bar */}
+          <div style={{background:"rgba(255,255,255,0.1)",borderRadius:"12px 12px 0 0",padding:"20px 24px",display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,textAlign:"center"}}>
+            {[{v:"2019",l:"Tahun Berdiri"},{v:data.profil.anggota,l:"Anggota Aktif"},{v:data.profil.kegiatan,l:"Total Kegiatan"},{v:data.profil.penghargaan,l:"Penghargaan"}].map(s=>(
+              <div key={s.l}>
+                <div style={{fontSize:22,fontWeight:500}}>{s.v}</div>
+                <div style={{fontSize:11,opacity:0.7,marginTop:2}}>{s.l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── TENTANG SINGKAT ── */}
+      <div style={{maxWidth:1100,margin:"0 auto",padding:"48px 20px 32px"}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:32,alignItems:"center"}}>
+          <div>
+            <div style={{fontSize:11,color:"#0F6E56",fontWeight:500,letterSpacing:1,textTransform:"uppercase",marginBottom:8}}>Siapa kami</div>
+            <h2 style={{fontSize:22,fontWeight:500,margin:"0 0 14px",color:"#1a1a18",lineHeight:1.35}}>Organisasi kepemudaan yang tumbuh bersama warga</h2>
+            <p style={{fontSize:14,color:"#5F5E5A",lineHeight:1.8,margin:"0 0 16px"}}>{data.profil.deskripsi}</p>
+            <button onClick={()=>setPage("Profil")} style={{background:"transparent",border:"none",color:"#0F6E56",cursor:"pointer",fontSize:13,padding:0,fontWeight:500}}>Baca selengkapnya →</button>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+            {[
+              {label:"Visi", text:"Organisasi pemuda yang mandiri, kreatif, dan berdaya guna", bg:"#EAF3DE", tc:"#27500A"},
+              {label:"Misi", text:"Menggerakkan partisipasi aktif pemuda dalam pembangunan sosial", bg:"#E1F5EE", tc:"#085041"},
+              {label:"Nilai", text:"Gotong royong, inovatif, inklusif, dan berorientasi dampak", bg:"#EEEDFE", tc:"#3C3489"},
+              {label:"Lokasi", text:"RW 02 Kalisari, Kecamatan Pasar Rebo, Jakarta Timur", bg:"#FAEEDA", tc:"#633806"},
+            ].map(c=>(
+              <div key={c.label} style={{background:c.bg,borderRadius:10,padding:16}}>
+                <div style={{fontSize:11,fontWeight:500,color:c.tc,marginBottom:6,textTransform:"uppercase",letterSpacing:0.5}}>{c.label}</div>
+                <div style={{fontSize:12,color:c.tc,lineHeight:1.6,opacity:0.9}}>{c.text}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── BIDANG KEGIATAN ── */}
+      <div style={{background:"#F7F6F1",padding:"40px 20px"}}>
+        <div style={{maxWidth:1100,margin:"0 auto"}}>
+          <div style={{textAlign:"center",marginBottom:28}}>
+            <div style={{fontSize:11,color:"#0F6E56",fontWeight:500,letterSpacing:1,textTransform:"uppercase",marginBottom:6}}>Bidang kerja</div>
+            <h2 style={{fontSize:20,fontWeight:500,margin:0,color:"#1a1a18"}}>Apa yang kami lakukan</h2>
+            <p style={{fontSize:13,color:"#888780",marginTop:6}}>Enam bidang utama yang menjadi fokus gerakan Karang Taruna RW 02</p>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:12}}>
+            {bidang.map(b=>(
+              <div key={b.label} style={{background:"#fff",borderRadius:12,padding:18,border:"0.5px solid #e8e8e5"}}>
+                <div style={{width:38,height:38,borderRadius:10,background:b.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,marginBottom:12}}>{b.icon}</div>
+                <div style={{fontWeight:500,fontSize:13,color:"#1a1a18",marginBottom:5}}>{b.label}</div>
+                <div style={{fontSize:12,color:"#888780",lineHeight:1.6}}>{b.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── PERJALANAN 5 TAHUN ── */}
+      <div style={{maxWidth:1100,margin:"0 auto",padding:"48px 20px"}}>
+        <div style={{textAlign:"center",marginBottom:32}}>
+          <div style={{fontSize:11,color:"#0F6E56",fontWeight:500,letterSpacing:1,textTransform:"uppercase",marginBottom:6}}>Perjalanan kami</div>
+          <h2 style={{fontSize:20,fontWeight:500,margin:0,color:"#1a1a18"}}>5 tahun penuh dedikasi</h2>
+        </div>
+        <div style={{position:"relative"}}>
+          <div style={{position:"absolute",top:18,left:"calc(50% - 0.5px)",width:"0.5px",background:"#d4d4d0",height:"calc(100% - 36px)"}} />
+          <div style={{display:"flex",flexDirection:"column",gap:0}}>
+            {timeline.map((t,i)=>(
+              <div key={t.tahun} style={{display:"flex",gap:0,alignItems:"flex-start",marginBottom:24,flexDirection:i%2===0?"row":"row-reverse"}}>
+                <div style={{flex:1,padding:i%2===0?"0 32px 0 0":"0 0 0 32px",textAlign:i%2===0?"right":"left"}}>
+                  <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:10,padding:"14px 16px",display:"inline-block",maxWidth:260}}>
+                    <div style={{fontWeight:500,fontSize:13,color:"#1a1a18",marginBottom:4}}>{t.label}</div>
+                    <div style={{fontSize:12,color:"#5F5E5A",lineHeight:1.6}}>{t.desc}</div>
+                  </div>
+                </div>
+                <div style={{width:36,height:36,borderRadius:"50%",background:"#0F6E56",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:500,flexShrink:0,zIndex:1}}>{t.tahun.slice(2)}</div>
+                <div style={{flex:1}} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── KEGIATAN TERBARU ── */}
+      <div style={{background:"#F7F6F1",padding:"40px 20px"}}>
+        <div style={{maxWidth:1100,margin:"0 auto"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+            <div>
+              <div style={{fontSize:11,color:"#0F6E56",fontWeight:500,letterSpacing:1,textTransform:"uppercase",marginBottom:4}}>Program terkini</div>
+              <h2 style={{margin:0,fontSize:20,fontWeight:500,color:"#1a1a18"}}>Kegiatan terbaru</h2>
+            </div>
+            <button onClick={()=>setPage("Kegiatan")} style={{background:"transparent",border:"none",color:"#0F6E56",cursor:"pointer",fontSize:13,fontWeight:500}}>Lihat semua →</button>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:14}}>
+            {recent.map((k,i)=>(
+              <div key={k.id} style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,overflow:"hidden",display:"flex",flexDirection:i===0?"column":"column"}}>
+                <img src={k.foto} alt={k.judul} style={{width:"100%",height:160,objectFit:"cover",display:"block"}} />
+                <div style={{padding:16}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                    <Badge kat={k.kategori} />
+                    <span style={{fontSize:11,color:"#888780"}}>{k.tanggal}</span>
+                  </div>
+                  <div style={{fontWeight:500,fontSize:14,marginBottom:5,color:"#1a1a18"}}>{k.judul}</div>
+                  <p style={{fontSize:12,color:"#5F5E5A",margin:"0 0 10px",lineHeight:1.5}}>{k.deskripsi}</p>
+                  {k.link && <a href={k.link} target="_blank" rel="noreferrer" style={{fontSize:12,color:"#0F6E56",textDecoration:"none"}}>Lihat dokumentasi →</a>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── PENGHARGAAN HIGHLIGHT ── */}
+      <div style={{maxWidth:1100,margin:"0 auto",padding:"48px 20px"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+          <div>
+            <div style={{fontSize:11,color:"#0F6E56",fontWeight:500,letterSpacing:1,textTransform:"uppercase",marginBottom:4}}>Prestasi</div>
+            <h2 style={{margin:0,fontSize:20,fontWeight:500,color:"#1a1a18"}}>Penghargaan yang kami raih</h2>
+          </div>
+          <button onClick={()=>setPage("Penghargaan")} style={{background:"transparent",border:"none",color:"#0F6E56",cursor:"pointer",fontSize:13,fontWeight:500}}>Lihat semua →</button>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:14}}>
+          {data.penghargaan.map(p=>(
+            <div key={p.id} style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:20,display:"flex",gap:14,alignItems:"flex-start"}}>
+              <div style={{width:44,height:44,borderRadius:10,background:"#FAEEDA",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>🏆</div>
+              <div>
+                <div style={{fontWeight:500,fontSize:13,color:"#1a1a18",marginBottom:4,lineHeight:1.4}}>{p.judul}</div>
+                <div style={{fontSize:12,color:"#888780",marginBottom:6}}>{p.penyelenggara} · {p.tahun}</div>
+                <TingkatBadge t={p.tingkat} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── SOSMED CTA ── */}
+      <div style={{background:"#0F6E56",padding:"40px 20px",textAlign:"center",color:"#fff"}}>
+        <div style={{maxWidth:600,margin:"0 auto"}}>
+          <div style={{fontSize:11,opacity:0.7,letterSpacing:1,textTransform:"uppercase",marginBottom:8}}>Ikuti perjalanan kami</div>
+          <h2 style={{fontWeight:500,fontSize:20,margin:"0 0 8px"}}>Update kegiatan terkini</h2>
+          <p style={{fontSize:13,opacity:0.8,margin:"0 0 24px"}}>Saksikan momen-momen berharga Karang Taruna RW 02 di Instagram dan YouTube kami.</p>
+          <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
+            <a href="https://www.instagram.com/kartarr_02/" target="_blank" rel="noreferrer" style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",borderRadius:8,padding:"10px 20px",textDecoration:"none",fontSize:13,fontWeight:500}}>Instagram @kartarr_02</a>
+            <a href="https://www.youtube.com/@karangtarunarw02kalisari70" target="_blank" rel="noreferrer" style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",borderRadius:8,padding:"10px 20px",textDecoration:"none",fontSize:13,fontWeight:500}}>YouTube Channel</a>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
-export default App;
+// ── PROFIL ────────────────────────────────────────────────────────────
+function Profil({ data }) {
+  return (
+    <div style={{maxWidth:900,margin:"0 auto",padding:"40px 20px"}}>
+      <h2 style={{fontWeight:500,margin:"0 0 6px"}}>Tentang kami</h2>
+      <p style={{color:"#888780",marginBottom:32,fontSize:14}}>Mengenal lebih jauh Karang Taruna RW 02 Kalisari</p>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24,marginBottom:24}}>
+        <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:24}}>
+          <div style={{fontSize:12,color:"#888780",marginBottom:4}}>Organisasi</div>
+          <div style={{fontSize:18,fontWeight:500,color:"#1a1a18",marginBottom:14}}>{data.profil.nama}</div>
+          <p style={{fontSize:14,color:"#5F5E5A",lineHeight:1.7,margin:0}}>{data.profil.deskripsi}</p>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          {[{label:"Tahun Berdiri",val:data.profil.berdiri},{label:"Jumlah Anggota",val:data.profil.anggota},{label:"Total Kegiatan",val:data.profil.kegiatan},{label:"Penghargaan",val:data.profil.penghargaan}].map(s=>(
+            <div key={s.label} style={{background:"#F7F6F1",borderRadius:10,padding:"13px 16px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <span style={{fontSize:13,color:"#5F5E5A"}}>{s.label}</span>
+              <span style={{fontSize:18,fontWeight:500,color:"#0F6E56"}}>{s.val}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div style={{background:"#EAF3DE",borderRadius:12,padding:24,marginBottom:16}}>
+        <h3 style={{margin:"0 0 10px",fontWeight:500,color:"#27500A",fontSize:15}}>Visi</h3>
+        <p style={{margin:0,fontSize:14,color:"#3B6D11",lineHeight:1.7}}>{data.profil.visi}</p>
+      </div>
+      <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:24}}>
+        <h3 style={{margin:"0 0 12px",fontWeight:500,color:"#1a1a18",fontSize:15}}>Misi</h3>
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          {data.profil.misi.map((m,i)=>(
+            <div key={i} style={{display:"flex",gap:12,alignItems:"flex-start"}}>
+              <div style={{width:22,height:22,borderRadius:6,background:"#EAF3DE",color:"#27500A",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:500,flexShrink:0}}>{i+1}</div>
+              <span style={{fontSize:13,color:"#5F5E5A",lineHeight:1.6}}>{m}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── KEGIATAN ──────────────────────────────────────────────────────────
+function Kegiatan({ data }) {
+  const [filter, setFilter] = useState("Semua");
+  const filtered = filter==="Semua" ? data.kegiatan : data.kegiatan.filter(k=>k.kategori===filter);
+  const sorted = [...filtered].sort((a,b)=>b.tanggal.localeCompare(a.tanggal));
+  return (
+    <div style={{maxWidth:1100,margin:"0 auto",padding:"40px 20px"}}>
+      <h2 style={{fontWeight:500,margin:"0 0 6px"}}>Arsip kegiatan</h2>
+      <p style={{color:"#888780",marginBottom:24,fontSize:14}}>Dokumentasi program dan event yang telah kami laksanakan</p>
+      <div style={{display:"flex",gap:8,marginBottom:24,flexWrap:"wrap"}}>
+        {CATS.map(c=>(
+          <button key={c} onClick={()=>setFilter(c)} style={{background:filter===c?"#0F6E56":"#fff",color:filter===c?"#fff":"#5F5E5A",border:"0.5px solid",borderColor:filter===c?"#0F6E56":"#ddd",padding:"6px 14px",borderRadius:20,cursor:"pointer",fontSize:13}}>{c}</button>
+        ))}
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:16}}>
+        {sorted.map(k=>(
+          <div key={k.id} style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,overflow:"hidden"}}>
+            <img src={k.foto} alt={k.judul} style={{width:"100%",height:180,objectFit:"cover",display:"block"}} />
+            <div style={{padding:16}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}><Badge kat={k.kategori} /><span style={{fontSize:11,color:"#888780"}}>{k.tanggal}</span></div>
+              <div style={{fontWeight:500,fontSize:15,marginBottom:6,color:"#1a1a18"}}>{k.judul}</div>
+              <p style={{fontSize:13,color:"#5F5E5A",margin:"0 0 10px",lineHeight:1.5}}>{k.deskripsi}</p>
+              {k.link && <a href={k.link} target="_blank" rel="noreferrer" style={{fontSize:12,color:"#0F6E56",textDecoration:"none"}}>Lihat dokumentasi →</a>}
+            </div>
+          </div>
+        ))}
+      </div>
+      {sorted.length===0 && <p style={{color:"#888780",textAlign:"center",marginTop:40}}>Tidak ada kegiatan di kategori ini.</p>}
+    </div>
+  );
+}
+
+// ── GALERI ────────────────────────────────────────────────────────────
+function Galeri({ data }) {
+  const [sel, setSel] = useState(null);
+  return (
+    <div style={{maxWidth:1100,margin:"0 auto",padding:"40px 20px"}}>
+      <h2 style={{fontWeight:500,margin:"0 0 6px"}}>Galeri foto</h2>
+      <p style={{color:"#888780",marginBottom:24,fontSize:14}}>Momen-momen berharga dalam perjalanan 5 tahun kami</p>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
+        {data.galeri.map(g=>(
+          <div key={g.id} onClick={()=>setSel(g)} style={{borderRadius:10,overflow:"hidden",cursor:"pointer",aspectRatio:"1",position:"relative"}}>
+            <img src={g.url} alt={g.caption} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} />
+            <div style={{position:"absolute",bottom:0,left:0,right:0,background:"linear-gradient(transparent,rgba(0,0,0,0.5))",padding:"8px",color:"#fff",fontSize:11}}>{g.caption}</div>
+          </div>
+        ))}
+      </div>
+      {sel && (
+        <div onClick={()=>setSel(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.8)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:999,padding:20}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:12,overflow:"hidden",maxWidth:600,width:"100%"}}>
+            <img src={sel.url} alt={sel.caption} style={{width:"100%",display:"block"}} />
+            <div style={{padding:"12px 16px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <span style={{fontSize:14,color:"#1a1a18"}}>{sel.caption}</span>
+              <button onClick={()=>setSel(null)} style={{background:"transparent",border:"none",cursor:"pointer",fontSize:18,color:"#888780"}}>✕</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── PENGURUS ──────────────────────────────────────────────────────────
+function Pengurus({ data }) {
+  return (
+    <div style={{maxWidth:1000,margin:"0 auto",padding:"40px 20px"}}>
+      <h2 style={{fontWeight:500,margin:"0 0 6px"}}>Struktur pengurus</h2>
+      <p style={{color:"#888780",marginBottom:32,fontSize:14}}>Pengurus aktif periode 2023–2025</p>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:14}}>
+        {data.pengurus.map(p=>(
+          <div key={p.id} style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:18,display:"flex",alignItems:"center",gap:14}}>
+            <Avatar nama={p.nama} size={50} />
+            <div>
+              <div style={{fontWeight:500,fontSize:14,color:"#1a1a18"}}>{p.nama}</div>
+              <div style={{fontSize:12,color:"#0F6E56",marginTop:2}}>{p.jabatan}</div>
+              <div style={{fontSize:11,color:"#888780",marginTop:2}}>{p.periode}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── PENGHARGAAN ───────────────────────────────────────────────────────
+function Penghargaan({ data }) {
+  const [filter, setFilter] = useState("Semua");
+  const tingkats = ["Semua","Kelurahan","Kecamatan","Kota","Nasional"];
+  const filtered = filter==="Semua" ? data.penghargaan : data.penghargaan.filter(p=>p.tingkat===filter);
+  const sorted = [...filtered].sort((a,b)=>b.tahun.localeCompare(a.tahun));
+  const total = data.penghargaan.length;
+  const byTingkat = ["Kelurahan","Kecamatan","Kota","Nasional"].map(t=>({t, n:data.penghargaan.filter(p=>p.tingkat===t).length})).filter(x=>x.n>0);
+  return (
+    <div style={{maxWidth:900,margin:"0 auto",padding:"40px 20px"}}>
+      <h2 style={{fontWeight:500,margin:"0 0 6px"}}>Penghargaan & Prestasi</h2>
+      <p style={{color:"#888780",marginBottom:24,fontSize:14}}>Pengakuan atas dedikasi dan kerja keras Karang Taruna RW 02 Kalisari</p>
+      {/* Summary cards */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:10,marginBottom:28}}>
+        <div style={{background:"#FAEEDA",borderRadius:10,padding:"16px",textAlign:"center"}}>
+          <div style={{fontSize:28,fontWeight:500,color:"#854F0B"}}>{total}</div>
+          <div style={{fontSize:12,color:"#854F0B",marginTop:2}}>Total Penghargaan</div>
+        </div>
+        {byTingkat.map(x=>(
+          <div key={x.t} style={{background:tingkatBg[x.t]||"#F1EFE8",borderRadius:10,padding:"16px",textAlign:"center"}}>
+            <div style={{fontSize:28,fontWeight:500,color:tingkatColor[x.t]||"#5F5E5A"}}>{x.n}</div>
+            <div style={{fontSize:12,color:tingkatColor[x.t]||"#5F5E5A",marginTop:2}}>Tingkat {x.t}</div>
+          </div>
+        ))}
+      </div>
+      {/* Filter */}
+      <div style={{display:"flex",gap:8,marginBottom:20,flexWrap:"wrap"}}>
+        {tingkats.map(t=>(
+          <button key={t} onClick={()=>setFilter(t)} style={{background:filter===t?"#0F6E56":"#fff",color:filter===t?"#fff":"#5F5E5A",border:"0.5px solid",borderColor:filter===t?"#0F6E56":"#ddd",padding:"6px 14px",borderRadius:20,cursor:"pointer",fontSize:13}}>{t}</button>
+        ))}
+      </div>
+      {/* List */}
+      <div style={{display:"flex",flexDirection:"column",gap:14}}>
+        {sorted.map(p=>(
+          <div key={p.id} style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:22,display:"flex",gap:18,alignItems:"flex-start"}}>
+            <div style={{width:56,height:56,borderRadius:12,background:"#FAEEDA",display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,flexShrink:0}}>🏆</div>
+            <div style={{flex:1}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:8,marginBottom:6}}>
+                <div style={{fontWeight:500,fontSize:15,color:"#1a1a18",lineHeight:1.4,flex:1}}>{p.judul}</div>
+                <div style={{display:"flex",gap:6,alignItems:"center",flexShrink:0}}>
+                  <TingkatBadge t={p.tingkat} />
+                  <span style={{fontSize:12,color:"#888780",background:"#F1EFE8",padding:"3px 8px",borderRadius:6}}>{p.tahun}</span>
+                </div>
+              </div>
+              <div style={{fontSize:13,color:"#0F6E56",marginBottom:6,fontWeight:500}}>{p.penyelenggara}</div>
+              <p style={{fontSize:13,color:"#5F5E5A",margin:0,lineHeight:1.6}}>{p.deskripsi}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      {sorted.length===0 && <p style={{color:"#888780",textAlign:"center",marginTop:40}}>Tidak ada data penghargaan untuk filter ini.</p>}
+    </div>
+  );
+}
+
+// ── KONTAK ────────────────────────────────────────────────────────────
+function Kontak() {
+  return (
+    <div style={{maxWidth:800,margin:"0 auto",padding:"40px 20px"}}>
+      <h2 style={{fontWeight:500,margin:"0 0 6px"}}>Kontak & media sosial</h2>
+      <p style={{color:"#888780",marginBottom:32,fontSize:14}}>Hubungi kami atau ikuti perkembangan terbaru</p>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:24}}>
+        <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:20}}>
+          <div style={{fontWeight:500,marginBottom:10,color:"#1a1a18"}}>Alamat</div>
+          <p style={{fontSize:13,color:"#5F5E5A",lineHeight:1.7,margin:0}}>RW 02 Kalisari<br/>Kelurahan Kalisari, Kec. Pasar Rebo<br/>Jakarta Timur, DKI Jakarta</p>
+        </div>
+        <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:20}}>
+          <div style={{fontWeight:500,marginBottom:10,color:"#1a1a18"}}>Media sosial</div>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            <a href="https://www.instagram.com/kartarr_02/" target="_blank" rel="noreferrer" style={{fontSize:13,color:"#C13584",textDecoration:"none"}}>Instagram: @kartarr_02</a>
+            <a href="https://www.youtube.com/@karangtarunarw02kalisari70" target="_blank" rel="noreferrer" style={{fontSize:13,color:"#FF0000",textDecoration:"none"}}>YouTube: Karang Taruna RW 02 Kalisari</a>
+          </div>
+        </div>
+      </div>
+      <div style={{background:"#EAF3DE",borderRadius:12,padding:24,textAlign:"center"}}>
+        <div style={{fontWeight:500,marginBottom:8,color:"#27500A"}}>Bergabung bersama kami</div>
+        <p style={{fontSize:13,color:"#3B6D11",margin:"0 0 16px"}}>Kami terbuka untuk pemuda-pemudi RW 02 yang ingin aktif berkontribusi.</p>
+        <a href="https://www.instagram.com/kartarr_02/" target="_blank" rel="noreferrer" style={{background:"#0F6E56",color:"#fff",padding:"10px 24px",borderRadius:8,textDecoration:"none",fontSize:13,fontWeight:500}}>Hubungi via Instagram</a>
+      </div>
+    </div>
+  );
+}
+
+// ── LOGIN ─────────────────────────────────────────────────────────────
+function Login({ onBack, onSuccess }) {
+  const [pw, setPw] = useState(""); const [err, setErr] = useState("");
+  const handle = () => { if(pw===ADMIN_PASS){onSuccess();}else{setErr("Password salah. Coba lagi.");} };
+  return (
+    <div style={{minHeight:"60vh",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:16,padding:32,width:"100%",maxWidth:360}}>
+        <div style={{textAlign:"center",marginBottom:24}}>
+          <div style={{width:48,height:48,borderRadius:12,background:"#0F6E56",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:500,fontSize:18,margin:"0 auto 12px"}}>KT</div>
+          <div style={{fontWeight:500,fontSize:16}}>Login Admin</div>
+          <div style={{fontSize:13,color:"#888780",marginTop:4}}>Masukkan password untuk akses panel admin</div>
+        </div>
+        <input type="password" placeholder="Password admin" value={pw} onChange={e=>{setPw(e.target.value);setErr("");}} onKeyDown={e=>e.key==="Enter"&&handle()} style={{width:"100%",marginBottom:8,boxSizing:"border-box"}} />
+        {err && <div style={{fontSize:12,color:"#E24B4A",marginBottom:8}}>{err}</div>}
+        <button onClick={handle} style={{width:"100%",background:"#0F6E56",color:"#fff",border:"none",padding:"10px",borderRadius:8,cursor:"pointer",fontWeight:500,marginBottom:8}}>Masuk</button>
+        <button onClick={onBack} style={{width:"100%",background:"transparent",border:"none",color:"#888780",cursor:"pointer",fontSize:13}}>Kembali ke website</button>
+        <div style={{marginTop:16,padding:12,background:"#F7F6F1",borderRadius:8,fontSize:12,color:"#888780",textAlign:"center"}}>Default password: <b>kartar2024</b></div>
+      </div>
+    </div>
+  );
+}
+
+// ── ADMIN ─────────────────────────────────────────────────────────────
+function Field({ label, val, onChange, type="text", textarea=false }) {
+  return (
+    <div style={{marginBottom:12}}>
+      <label style={{fontSize:12,color:"#888780",display:"block",marginBottom:4}}>{label}</label>
+      {textarea
+        ? <textarea value={val} onChange={e=>onChange(e.target.value)} rows={3} style={{width:"100%",boxSizing:"border-box",resize:"vertical"}} />
+        : <input type={type} value={val} onChange={e=>onChange(e.target.value)} style={{width:"100%",boxSizing:"border-box"}} />
+      }
+    </div>
+  );
+}
+
+function AdminPanel({ data, setData, onLogout }) {
+  const [tab, setTab] = useState("profil");
+  const [msg, setMsg] = useState("");
+  const save = (newData) => { setData(newData); setMsg("Tersimpan!"); setTimeout(()=>setMsg(""),2000); };
+  return (
+    <div style={{maxWidth:1000,margin:"0 auto",padding:"24px 20px"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
+        <div><div style={{fontWeight:500,fontSize:18}}>Panel Admin</div><div style={{fontSize:13,color:"#888780"}}>Kelola konten website</div></div>
+        <button onClick={onLogout} style={{background:"transparent",border:"0.5px solid #ddd",padding:"7px 16px",borderRadius:8,cursor:"pointer",fontSize:13,color:"#888780"}}>Keluar</button>
+      </div>
+      {msg && <div style={{background:"#EAF3DE",color:"#27500A",padding:"10px 16px",borderRadius:8,marginBottom:16,fontSize:13}}>{msg}</div>}
+      <div style={{display:"flex",gap:6,marginBottom:24,borderBottom:"0.5px solid #e8e8e5",paddingBottom:12,flexWrap:"wrap"}}>
+        {[["profil","Profil"],["kegiatan","Kegiatan"],["galeri","Galeri"],["pengurus","Pengurus"],["penghargaan","Penghargaan"]].map(([k,l])=>(
+          <button key={k} onClick={()=>setTab(k)} style={{background:tab===k?"#EAF3DE":"transparent",color:tab===k?"#27500A":"#5F5E5A",border:"none",padding:"7px 16px",borderRadius:6,cursor:"pointer",fontSize:13,fontWeight:tab===k?500:400}}>{l}</button>
+        ))}
+      </div>
+      {tab==="profil" && <AdminProfil data={data} save={save} />}
+      {tab==="kegiatan" && <AdminKegiatan data={data} save={save} />}
+      {tab==="galeri" && <AdminGaleri data={data} save={save} />}
+      {tab==="pengurus" && <AdminPengurus data={data} save={save} />}
+      {tab==="penghargaan" && <AdminPenghargaan data={data} save={save} />}
+    </div>
+  );
+}
+
+function AdminProfil({ data, save }) {
+  const [p, setP] = useState({...data.profil});
+  const upd = k => v => setP({...p,[k]:v});
+  return (
+    <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:24}}>
+      <Field label="Nama organisasi" val={p.nama} onChange={upd("nama")} />
+      <Field label="Tagline" val={p.tagline} onChange={upd("tagline")} />
+      <Field label="Deskripsi" val={p.deskripsi} onChange={upd("deskripsi")} textarea />
+      <Field label="Visi" val={p.visi} onChange={upd("visi")} textarea />
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+        <Field label="Tahun berdiri" val={p.berdiri} onChange={upd("berdiri")} />
+        <Field label="Jumlah anggota" val={p.anggota} onChange={upd("anggota")} />
+        <Field label="Total kegiatan" val={p.kegiatan} onChange={upd("kegiatan")} />
+        <Field label="Penghargaan" val={p.penghargaan} onChange={upd("penghargaan")} />
+      </div>
+      <button onClick={()=>save({...data,profil:p})} style={{background:"#0F6E56",color:"#fff",border:"none",padding:"10px 24px",borderRadius:8,cursor:"pointer",fontWeight:500}}>Simpan profil</button>
+    </div>
+  );
+}
+
+function AdminKegiatan({ data, save }) {
+  const [list, setList] = useState(data.kegiatan);
+  const [edit, setEdit] = useState(null);
+  const [form, setForm] = useState({judul:"",kategori:"Sosial",tanggal:"",deskripsi:"",foto:"",link:""});
+  const upd = k => v => setForm({...form,[k]:v});
+  const openNew = () => { setEdit("new"); setForm({judul:"",kategori:"Sosial",tanggal:"",deskripsi:"",foto:"",link:""}); };
+  const saveItem = () => {
+    const nl = edit==="new" ? [...list,{...form,id:Date.now()}] : list.map(k=>k.id===edit?{...form,id:edit}:k);
+    setList(nl); save({...data,kegiatan:nl}); setEdit(null);
+  };
+  const del = id => { const nl=list.filter(k=>k.id!==id); setList(nl); save({...data,kegiatan:nl}); };
+  return (
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",marginBottom:14}}>
+        <span style={{fontSize:14,color:"#888780"}}>{list.length} kegiatan</span>
+        <button onClick={openNew} style={{background:"#0F6E56",color:"#fff",border:"none",padding:"7px 14px",borderRadius:8,cursor:"pointer",fontSize:13}}>+ Tambah</button>
+      </div>
+      {edit && (
+        <div style={{background:"#F7F6F1",borderRadius:12,padding:18,marginBottom:14}}>
+          <div style={{fontWeight:500,marginBottom:14,fontSize:14}}>{edit==="new"?"Tambah kegiatan":"Edit kegiatan"}</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+            <Field label="Judul" val={form.judul} onChange={upd("judul")} />
+            <div style={{marginBottom:12}}><label style={{fontSize:12,color:"#888780",display:"block",marginBottom:4}}>Kategori</label><select value={form.kategori} onChange={e=>upd("kategori")(e.target.value)} style={{width:"100%",boxSizing:"border-box"}}>{CATS.slice(1).map(c=><option key={c}>{c}</option>)}</select></div>
+            <Field label="Tanggal" val={form.tanggal} onChange={upd("tanggal")} type="date" />
+            <Field label="URL foto" val={form.foto} onChange={upd("foto")} />
+          </div>
+          <Field label="Link dokumentasi" val={form.link} onChange={upd("link")} />
+          <Field label="Deskripsi" val={form.deskripsi} onChange={upd("deskripsi")} textarea />
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={saveItem} style={{background:"#0F6E56",color:"#fff",border:"none",padding:"8px 18px",borderRadius:8,cursor:"pointer",fontSize:13}}>Simpan</button>
+            <button onClick={()=>setEdit(null)} style={{background:"transparent",border:"0.5px solid #ddd",padding:"8px 18px",borderRadius:8,cursor:"pointer",fontSize:13}}>Batal</button>
+          </div>
+        </div>
+      )}
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        {[...list].sort((a,b)=>b.tanggal.localeCompare(a.tanggal)).map(k=>(
+          <div key={k.id} style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:10,padding:"12px 14px",display:"flex",alignItems:"center",gap:10}}>
+            <img src={k.foto} alt="" style={{width:52,height:38,objectFit:"cover",borderRadius:6}} />
+            <div style={{flex:1}}><div style={{fontWeight:500,fontSize:13,color:"#1a1a18"}}>{k.judul}</div><div style={{fontSize:12,color:"#888780",marginTop:2}}><Badge kat={k.kategori} /> · {k.tanggal}</div></div>
+            <button onClick={()=>{setEdit(k.id);setForm({...k});}} style={{background:"transparent",border:"0.5px solid #ddd",padding:"4px 10px",borderRadius:6,cursor:"pointer",fontSize:12}}>Edit</button>
+            <button onClick={()=>del(k.id)} style={{background:"transparent",border:"0.5px solid #F09595",color:"#E24B4A",padding:"4px 10px",borderRadius:6,cursor:"pointer",fontSize:12}}>Hapus</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AdminGaleri({ data, save }) {
+  const [list, setList] = useState(data.galeri);
+  const [url, setUrl] = useState(""); const [cap, setCap] = useState("");
+  const add = () => { if(!url) return; const nl=[...list,{id:Date.now(),url,caption:cap}]; setList(nl); save({...data,galeri:nl}); setUrl(""); setCap(""); };
+  const del = id => { const nl=list.filter(g=>g.id!==id); setList(nl); save({...data,galeri:nl}); };
+  return (
+    <div>
+      <div style={{background:"#F7F6F1",borderRadius:12,padding:18,marginBottom:16}}>
+        <div style={{fontWeight:500,marginBottom:12,fontSize:14}}>Tambah foto</div>
+        <Field label="URL foto" val={url} onChange={setUrl} />
+        <Field label="Keterangan" val={cap} onChange={setCap} />
+        <button onClick={add} style={{background:"#0F6E56",color:"#fff",border:"none",padding:"8px 18px",borderRadius:8,cursor:"pointer",fontSize:13}}>Tambah</button>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:10}}>
+        {list.map(g=>(
+          <div key={g.id} style={{borderRadius:10,overflow:"hidden",position:"relative",aspectRatio:"1"}}>
+            <img src={g.url} alt={g.caption} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} />
+            <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.35)",display:"flex",alignItems:"flex-end",justifyContent:"space-between",padding:7}}>
+              <span style={{color:"#fff",fontSize:11}}>{g.caption}</span>
+              <button onClick={()=>del(g.id)} style={{background:"#E24B4A",color:"#fff",border:"none",borderRadius:4,padding:"2px 6px",cursor:"pointer",fontSize:11}}>✕</button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AdminPengurus({ data, save }) {
+  const [list, setList] = useState(data.pengurus);
+  const [edit, setEdit] = useState(null);
+  const [form, setForm] = useState({nama:"",jabatan:"",periode:"2023–2025"});
+  const upd = k => v => setForm({...form,[k]:v});
+  const saveItem = () => {
+    const nl = edit==="new" ? [...list,{...form,id:Date.now()}] : list.map(p=>p.id===edit?{...form,id:edit}:p);
+    setList(nl); save({...data,pengurus:nl}); setEdit(null);
+  };
+  const del = id => { const nl=list.filter(p=>p.id!==id); setList(nl); save({...data,pengurus:nl}); };
+  return (
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",marginBottom:14}}>
+        <span style={{fontSize:14,color:"#888780"}}>{list.length} pengurus</span>
+        <button onClick={()=>{setEdit("new");setForm({nama:"",jabatan:"",periode:"2023–2025"});}} style={{background:"#0F6E56",color:"#fff",border:"none",padding:"7px 14px",borderRadius:8,cursor:"pointer",fontSize:13}}>+ Tambah</button>
+      </div>
+      {edit && (
+        <div style={{background:"#F7F6F1",borderRadius:12,padding:18,marginBottom:14}}>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+            <Field label="Nama" val={form.nama} onChange={upd("nama")} />
+            <Field label="Jabatan" val={form.jabatan} onChange={upd("jabatan")} />
+            <Field label="Periode" val={form.periode} onChange={upd("periode")} />
+          </div>
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={saveItem} style={{background:"#0F6E56",color:"#fff",border:"none",padding:"8px 18px",borderRadius:8,cursor:"pointer",fontSize:13}}>Simpan</button>
+            <button onClick={()=>setEdit(null)} style={{background:"transparent",border:"0.5px solid #ddd",padding:"8px 18px",borderRadius:8,cursor:"pointer",fontSize:13}}>Batal</button>
+          </div>
+        </div>
+      )}
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        {list.map(p=>(
+          <div key={p.id} style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:10,padding:"12px 14px",display:"flex",alignItems:"center",gap:10}}>
+            <Avatar nama={p.nama} size={38} />
+            <div style={{flex:1}}><div style={{fontWeight:500,fontSize:13,color:"#1a1a18"}}>{p.nama}</div><div style={{fontSize:12,color:"#0F6E56"}}>{p.jabatan} · {p.periode}</div></div>
+            <button onClick={()=>{setEdit(p.id);setForm({...p});}} style={{background:"transparent",border:"0.5px solid #ddd",padding:"4px 10px",borderRadius:6,cursor:"pointer",fontSize:12}}>Edit</button>
+            <button onClick={()=>del(p.id)} style={{background:"transparent",border:"0.5px solid #F09595",color:"#E24B4A",padding:"4px 10px",borderRadius:6,cursor:"pointer",fontSize:12}}>Hapus</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AdminPenghargaan({ data, save }) {
+  const [list, setList] = useState(data.penghargaan);
+  const [edit, setEdit] = useState(null);
+  const [form, setForm] = useState({judul:"",penyelenggara:"",tahun:"2024",deskripsi:"",tingkat:"Kelurahan"});
+  const upd = k => v => setForm({...form,[k]:v});
+  const saveItem = () => {
+    const nl = edit==="new" ? [...list,{...form,id:Date.now()}] : list.map(p=>p.id===edit?{...form,id:edit}:p);
+    setList(nl); save({...data,penghargaan:nl}); setEdit(null);
+  };
+  const del = id => { const nl=list.filter(p=>p.id!==id); setList(nl); save({...data,penghargaan:nl}); };
+  return (
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",marginBottom:14}}>
+        <span style={{fontSize:14,color:"#888780"}}>{list.length} penghargaan</span>
+        <button onClick={()=>{setEdit("new");setForm({judul:"",penyelenggara:"",tahun:"2024",deskripsi:"",tingkat:"Kelurahan"});}} style={{background:"#0F6E56",color:"#fff",border:"none",padding:"7px 14px",borderRadius:8,cursor:"pointer",fontSize:13}}>+ Tambah</button>
+      </div>
+      {edit && (
+        <div style={{background:"#F7F6F1",borderRadius:12,padding:18,marginBottom:14}}>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+            <Field label="Judul penghargaan" val={form.judul} onChange={upd("judul")} />
+            <Field label="Penyelenggara" val={form.penyelenggara} onChange={upd("penyelenggara")} />
+            <Field label="Tahun" val={form.tahun} onChange={upd("tahun")} />
+            <div style={{marginBottom:12}}><label style={{fontSize:12,color:"#888780",display:"block",marginBottom:4}}>Tingkat</label><select value={form.tingkat} onChange={e=>upd("tingkat")(e.target.value)} style={{width:"100%",boxSizing:"border-box"}}>{["Kelurahan","Kecamatan","Kota","Nasional"].map(t=><option key={t}>{t}</option>)}</select></div>
+          </div>
+          <Field label="Deskripsi" val={form.deskripsi} onChange={upd("deskripsi")} textarea />
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={saveItem} style={{background:"#0F6E56",color:"#fff",border:"none",padding:"8px 18px",borderRadius:8,cursor:"pointer",fontSize:13}}>Simpan</button>
+            <button onClick={()=>setEdit(null)} style={{background:"transparent",border:"0.5px solid #ddd",padding:"8px 18px",borderRadius:8,cursor:"pointer",fontSize:13}}>Batal</button>
+          </div>
+        </div>
+      )}
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        {[...list].sort((a,b)=>b.tahun.localeCompare(a.tahun)).map(p=>(
+          <div key={p.id} style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:10,padding:"14px 16px",display:"flex",alignItems:"center",gap:12}}>
+            <div style={{width:42,height:42,borderRadius:10,background:"#FAEEDA",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>🏆</div>
+            <div style={{flex:1}}>
+              <div style={{fontWeight:500,fontSize:13,color:"#1a1a18",marginBottom:3}}>{p.judul}</div>
+              <div style={{display:"flex",gap:6,alignItems:"center"}}><TingkatBadge t={p.tingkat} /><span style={{fontSize:11,color:"#888780"}}>{p.penyelenggara} · {p.tahun}</span></div>
+            </div>
+            <button onClick={()=>{setEdit(p.id);setForm({...p});}} style={{background:"transparent",border:"0.5px solid #ddd",padding:"4px 10px",borderRadius:6,cursor:"pointer",fontSize:12}}>Edit</button>
+            <button onClick={()=>del(p.id)} style={{background:"transparent",border:"0.5px solid #F09595",color:"#E24B4A",padding:"4px 10px",borderRadius:6,cursor:"pointer",fontSize:12}}>Hapus</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── ROOT ──────────────────────────────────────────────────────────────
+export default function App() {
+  const [page, setPage] = useState("Beranda");
+  const [mode, setMode] = useState("public");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [data, setData] = useState(initData);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const d = await getData();
+        if (d) setData(d);
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+  }, []);
+
+  const saveData = async (nd) => {
+    setData(nd);
+    try {
+      await fbSave(nd);
+    } catch (e) {
+      console.error("Gagal simpan:", e);
+    }
+  };
+
+  if(mode==="login") return <Login onBack={()=>setMode("public")} onSuccess={()=>{setIsAdmin(true);setMode("admin");}} />;
+  if(mode==="admin") return <div><Navbar page={page} setPage={setPage} isAdmin={isAdmin} setMode={setMode} /><AdminPanel data={data} setData={saveData} onLogout={()=>setMode("public")} /></div>;
+
+  return (
+    <div style={{background:"#FAFAF8",minHeight:"100vh"}}>
+      <Navbar page={page} setPage={p=>{setPage(p);setMode("public");}} isAdmin={isAdmin} setMode={setMode} />
+      {page==="Beranda" && <Beranda data={data} setPage={setPage} />}
+      {page==="Profil" && <Profil data={data} />}
+      {page==="Kegiatan" && <Kegiatan data={data} />}
+      {page==="Galeri" && <Galeri data={data} />}
+      {page==="Pengurus" && <Pengurus data={data} />}
+      {page==="Penghargaan" && <Penghargaan data={data} />}
+      {page==="Kontak" && <Kontak />}
+      <footer style={{background:"#fff",borderTop:"0.5px solid #e8e8e5",padding:"20px",textAlign:"center",marginTop:40}}>
+        <p style={{fontSize:12,color:"#888780",margin:0}}>© 2024 Karang Taruna RW 02 Kalisari · Kalisari, Jakarta Timur</p>
+      </footer>
+    </div>
+  );
+}
