@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getData, saveData as fbSave, getPengurus, kirimFeedback, subscribeFeedback, hapusFeedback } from "./firebase";
 
 const ADMIN_PASS = process.env.REACT_APP_ADMIN_PASSWORD;
@@ -517,103 +517,191 @@ function Galeri({ data }) {
 // ── PENGURUS ──────────────────────────────────────────────────────────
 
 
-function StrukturOrganisasi({ pengurus }) {
-  const isMobile = useIsMobile();
-  const cari = (kata) => pengurus.find(p => p.jabatan?.toLowerCase().includes(kata.toLowerCase()));
-  const cariSemua = (kata) => pengurus.filter(p => p.jabatan?.toLowerCase().includes(kata.toLowerCase()));
+const DIVISI_COLORS = ["#185FA5","#27AE60","#C8922A","#16A085","#8E44AD","#E74C3C","#D35400","#2980B9","#1ABC9C"];
 
-  const ketua     = cari("ketua") && !cari("ketua")?.jabatan?.toLowerCase().includes("wakil") ? cari("ketua") : pengurus.find(p => /ketua/i.test(p.jabatan) && !/wakil/i.test(p.jabatan));
-  const wakil     = pengurus.find(p => /wakil/i.test(p.jabatan));
-  const sekretaris = cariSemua("sekretaris");
-  const bendahara  = cariSemua("bendahara");
-  const divisiList = [...new Set(pengurus.map(p => p.divisi).filter(d => d && d !== "Umum" && d !== "Pengurus Inti"))];
+function OrgBox({ nama, jabatan, color="#185FA5", bg="#E8F0FB", size="md" }) {
+  const pad = size==="lg" ? "10px 20px" : size==="sm" ? "6px 12px" : "8px 16px";
+  const fs  = size==="lg" ? 13 : size==="sm" ? 10 : 11;
+  return (
+    <div style={{border:`1.5px solid ${color}`,borderRadius:6,padding:pad,background:bg,textAlign:"center",minWidth:size==="lg"?130:100}}>
+      <div style={{fontWeight:700,fontSize:fs,color:"#1a1a18",textTransform:"uppercase",letterSpacing:0.3}}>{nama}</div>
+      <div style={{fontSize:fs-1,color:color,marginTop:2,fontWeight:500}}>{jabatan}</div>
+    </div>
+  );
+}
+
+function VLine({ h=20, color="#555" }) {
+  return <div style={{width:1.5,height:h,background:color,margin:"0 auto"}} />;
+}
+function HLine({ color="#555", w=32, dashed=false }) {
+  return <div style={{width:w,height:0,borderTop:`${dashed?"2px dashed":"1.5px solid"} ${color}`,flexShrink:0,alignSelf:"center"}} />;
+}
+
+function StrukturOrganisasi({ pengurus }) {
+  const containerRef = useRef(null);
+  const boxRefs = useRef({});
+  const [svgLines, setSvgLines] = useState([]);
+  const [svgH, setSvgH] = useState(0);
+  const setBoxRef = key => el => { boxRefs.current[key] = el; };
+
+  const has = (p, kata) => p.jabatan?.toLowerCase().includes(kata.toLowerCase());
+  const ketuaRW = pengurus.find(p => has(p,"ketua rw") || has(p,"pembina"));
+  const dewan = pengurus.find(p => has(p,"dewan") || has(p,"pertimbangan") || has(p,"penasihat"));
+  const ketua = pengurus.find(p => /ketua/i.test(p.jabatan) && !/wakil|rw|dewan|divisi/i.test(p.jabatan));
+  const wakil = pengurus.find(p => /wakil/i.test(p.jabatan));
+  const bendahara = pengurus.filter(p => has(p,"bendahara")).sort((a,b) => a.jabatan.localeCompare(b.jabatan));
+  const sekretaris = pengurus.filter(p => has(p,"sekretaris")).sort((a,b) => a.jabatan.localeCompare(b.jabatan));
+  const kadivList = pengurus
+    .filter(p => /^kadiv\s/i.test(p.jabatan?.trim()))
+    .map(p => ({ ...p, namaDiv: p.jabatan.trim().replace(/^kadiv\s+/i,"").trim() }));
+  // Gabungkan divisi dari kadivList + semua divisi unik dari data pengurus
+  const allDivisiFromData = [...new Set(pengurus.map(p=>p.divisi).filter(d=>d&&d!=="Umum"&&d!=="Pengurus Inti"&&d!=="Inti"))];
+  const kadivNames = kadivList.map(p => p.namaDiv);
+  const rawDivisiList = [...kadivNames, ...allDivisiFromData.filter(d => !kadivNames.some(k => k.toLowerCase()===d.toLowerCase()))];
+  // Tukar posisi Humas (ke kanan/akhir) dan Seni Olahraga
+  const divisiList = (() => {
+    const arr = [...rawDivisiList];
+    const hi = arr.findIndex(d => /humas/i.test(d));
+    const si = arr.findIndex(d => /seni|olahraga/i.test(d));
+    if (hi >= 0 && si >= 0) [arr[hi], arr[si]] = [arr[si], arr[hi]];
+    return arr;
+  })();
+
+  const lc = "#333";
+
+  useEffect(() => {
+    function measure() {
+      if (!containerRef.current) return;
+      const cr = containerRef.current.getBoundingClientRect();
+      const get = key => {
+        const el = boxRefs.current[key];
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        return {
+          cx: r.left + r.width/2 - cr.left,
+          cy: r.top + r.height/2 - cr.top,
+          top: r.top - cr.top,
+          bottom: r.bottom - cr.top,
+          left: r.left - cr.left,
+          right: r.right - cr.left,
+        };
+      };
+      const lines = [];
+      const wk = get('wakil'), b1 = get('bend1'), s1 = get('sek1');
+      // Solid T-junction: Wakil → Bendahara + Sekretaris
+      if (wk && (b1 || s1)) {
+        const midY = wk.bottom + 14;
+        lines.push({ x1:wk.cx, y1:wk.bottom, x2:wk.cx, y2:midY, dash:false });
+        if (b1 && s1) lines.push({ x1:b1.cx, y1:midY, x2:s1.cx, y2:midY, dash:false });
+        if (b1) lines.push({ x1:b1.cx, y1:midY, x2:b1.cx, y2:b1.top, dash:false });
+        if (s1) lines.push({ x1:s1.cx, y1:midY, x2:s1.cx, y2:s1.top, dash:false });
+      }
+      setSvgLines(lines);
+      setSvgH(containerRef.current.scrollHeight);
+    }
+    const t = setTimeout(measure, 80);
+    window.addEventListener('resize', measure);
+    return () => { clearTimeout(t); window.removeEventListener('resize', measure); };
+  }, [pengurus]);
 
   return (
-    <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:16,padding:isMobile?"20px 12px":32,marginBottom:40,overflowX:"auto"}}>
-      <div style={{fontSize:11,fontWeight:500,color:"#C8922A",textTransform:"uppercase",letterSpacing:0.8,marginBottom:24}}>Struktur Organisasi</div>
+    <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:16,padding:24,marginBottom:40,overflowX:"auto"}}>
+      <div style={{fontSize:10,color:"#888780",marginBottom:20,display:"flex",gap:20}}>
+        <span style={{display:"flex",alignItems:"center",gap:6}}>
+          <span style={{display:"inline-block",width:24,height:0,borderTop:"1.5px solid #333"}} /> Komando
+        </span>
+        <span style={{display:"flex",alignItems:"center",gap:6}}>
+          <span style={{display:"inline-block",width:24,height:0,borderTop:"2px dashed #888"}} /> Koordinasi
+        </span>
+      </div>
+      <div ref={containerRef} style={{minWidth:950,position:"relative"}}>
 
-      <div style={{minWidth:isMobile?500:0}}>
-        {/* Level 1 — Ketua */}
-        {ketua && (
-          <div style={{display:"flex",justifyContent:"center",marginBottom:0,position:"relative"}}>
-            <div style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
-              <div style={{background:"#E8F0FB",borderRadius:12,padding:"14px 20px",border:"1.5px solid #185FA5",display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
-                <Avatar nama={ketua.nama} size={52} />
-                <div style={{textAlign:"center"}}>
-                  <div style={{fontWeight:600,fontSize:13,color:"#1a1a18"}}>{ketua.nama}</div>
-                  <div style={{fontSize:11,color:"#185FA5",marginTop:2}}>{ketua.jabatan}</div>
+        {/* SVG overlay */}
+        {svgLines.length > 0 && (
+          <svg style={{position:"absolute",top:0,left:0,width:"100%",height:svgH||"100%",pointerEvents:"none",overflow:"visible",zIndex:2}}>
+            {svgLines.map((l,i) => (
+              <line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2}
+                stroke={l.dash?"#888":lc} strokeWidth="1.5"
+                strokeDasharray={l.dash?"5,4":undefined} />
+            ))}
+          </svg>
+        )}
+
+        {/* Ketua RW */}
+        {ketuaRW && (
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",position:"relative",zIndex:1}}>
+            <OrgBox nama={ketuaRW.nama} jabatan={ketuaRW.jabatan} color="#854F0B" bg="#FAEEDA" size="lg" />
+            <VLine h={20} color={lc} />
+          </div>
+        )}
+
+        {/* Ketua + Dewan Pertimbangan */}
+        <div style={{display:"flex",justifyContent:"center",alignItems:"center",position:"relative",zIndex:1}}>
+          <div style={{flex:1}} />
+          <OrgBox nama={ketua?.nama||""} jabatan={ketua?.jabatan||"Ketua"} color="#185FA5" bg="#E8F0FB" size="lg" />
+          <div style={{flex:1,display:"flex",alignItems:"center"}}>
+            {dewan && <><HLine color="#888" w={32} dashed /><OrgBox nama={dewan.nama} jabatan={dewan.jabatan} color="#533AB7" bg="#EEEDFE" /></>}
+          </div>
+        </div>
+        <div style={{display:"flex",justifyContent:"center",position:"relative",zIndex:1}}>
+          <VLine h={20} color={lc} />
+        </div>
+
+        {/* Dashed big box: Wakil Ketua (top-center) + Bendahara (left) + Sekretaris (right) */}
+        <div style={{border:"2px dashed #aaa",borderRadius:8,padding:"20px 32px 24px",position:"relative",zIndex:1}}>
+          {/* Wakil Ketua */}
+          <div style={{display:"flex",justifyContent:"center",marginBottom:28}}>
+            <div ref={setBoxRef('wakil')}>
+              <OrgBox nama={wakil?.nama||""} jabatan={wakil?.jabatan||"Wakil Ketua"} color="#C8922A" bg="#FBF3E2" size="lg" />
+            </div>
+          </div>
+          {/* Bendahara (left) and Sekretaris (right) — lines drawn by SVG */}
+          <div style={{display:"flex",justifyContent:"space-between",gap:16}}>
+            <div style={{flex:1,display:"flex",flexDirection:"column",gap:10,alignItems:"stretch",maxWidth:220}}>
+              {bendahara.map((p,idx) => (
+                <div key={p.id} ref={idx===0 ? setBoxRef('bend1') : undefined}>
+                  <OrgBox nama={p.nama} jabatan={p.jabatan} color="#0F6E56" bg="#E1F5EE" />
                 </div>
-              </div>
-              {/* garis turun */}
-              <div style={{width:1.5,height:24,background:"#C8922A"}} />
+              ))}
             </div>
-          </div>
-        )}
-
-        {/* Level 2 — Wakil Ketua */}
-        {wakil && (
-          <div style={{display:"flex",justifyContent:"center",marginBottom:0}}>
-            <div style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
-              <div style={{background:"#FBF3E2",borderRadius:12,padding:"12px 18px",border:"1.5px solid #C8922A",display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
-                <Avatar nama={wakil.nama} size={44} />
-                <div style={{textAlign:"center"}}>
-                  <div style={{fontWeight:500,fontSize:12,color:"#1a1a18"}}>{wakil.nama}</div>
-                  <div style={{fontSize:10,color:"#C8922A",marginTop:1}}>{wakil.jabatan}</div>
+            <div style={{flex:2}} />
+            <div style={{flex:1,display:"flex",flexDirection:"column",gap:10,alignItems:"stretch",maxWidth:220}}>
+              {sekretaris.map((p,idx) => (
+                <div key={p.id} ref={idx===0 ? setBoxRef('sek1') : undefined}>
+                  <OrgBox nama={p.nama} jabatan={p.jabatan} color="#993C1D" bg="#FAECE7" />
                 </div>
-              </div>
-              <div style={{width:1.5,height:24,background:"#C8922A"}} />
+              ))}
             </div>
           </div>
-        )}
+        </div>
 
-        {/* Level 3 — Sekretaris & Bendahara */}
-        {(sekretaris.length > 0 || bendahara.length > 0) && (
-          <div style={{display:"flex",justifyContent:"center",marginBottom:0}}>
-            <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%"}}>
-              {/* garis horizontal */}
-              <div style={{display:"flex",alignItems:"flex-start",justifyContent:"center",width:"100%",gap:0}}>
-                {[...sekretaris,...bendahara].map((p,i,arr)=>(
-                  <div key={p.id} style={{display:"flex",flexDirection:"column",alignItems:"center",flex:1,maxWidth:160}}>
-                    <div style={{width:1.5,height:i===Math.floor((arr.length-1)/2)?0:24,background:"transparent"}} />
-                    <div style={{display:"flex",alignItems:"flex-start",width:"100%"}}>
-                      {i>0 && <div style={{flex:1,height:1.5,background:"#e2e2e0",marginTop:40}} />}
-                      <div style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
-                        <div style={{width:1.5,height:24,background:"#C8922A"}} />
-                        <div style={{background:"#FAFAF8",borderRadius:10,padding:"10px 14px",border:"0.5px solid #e2e2e0",display:"flex",flexDirection:"column",alignItems:"center",gap:6,minWidth:100}}>
-                          <Avatar nama={p.nama} size={38} />
-                          <div style={{textAlign:"center"}}>
-                            <div style={{fontWeight:500,fontSize:11,color:"#1a1a18"}}>{p.nama}</div>
-                            <div style={{fontSize:10,color:"#888780",marginTop:1}}>{p.jabatan}</div>
-                          </div>
-                        </div>
-                      </div>
-                      {i<arr.length-1 && <div style={{flex:1,height:1.5,background:"#e2e2e0",marginTop:40}} />}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {divisiList.length > 0 && <div style={{width:1.5,height:24,background:"#C8922A"}} />}
-            </div>
-          </div>
-        )}
+        {/* VLine to divisi */}
+        <div style={{display:"flex",justifyContent:"center",position:"relative",zIndex:1}}>
+          <VLine h={20} color={lc} />
+        </div>
 
-        {/* Level 4 — Divisi */}
+        {/* Divisi row — all members */}
         {divisiList.length > 0 && (
-          <div style={{display:"flex",justifyContent:"center"}}>
-            <div style={{display:"flex",alignItems:"flex-start",justifyContent:"center",gap:0,width:"100%",flexWrap:"wrap"}}>
-              {divisiList.map((divisi, i) => {
-                const koordinator = pengurus.filter(p => (p.divisi===divisi) && /koordinator|kepala|ketua divisi/i.test(p.jabatan));
-                const rep = koordinator[0] || pengurus.find(p => p.divisi===divisi);
-                if (!rep) return null;
+          <div style={{position:"relative",zIndex:1}}>
+            <div style={{display:"flex",alignItems:"flex-start",width:"100%",position:"relative"}}>
+              <div style={{position:"absolute",top:0,left:"5%",right:"5%",height:1.5,background:lc}} />
+              {divisiList.map((divisi,i) => {
+                const ketDiv = kadivList.find(p => p.namaDiv === divisi)
+                  || pengurus.filter(p=>p.divisi===divisi).find(p=>/ketua|kepala|koordinator/i.test(p.jabatan));
+                const color = DIVISI_COLORS[i % DIVISI_COLORS.length];
                 return (
-                  <div key={divisi} style={{display:"flex",flexDirection:"column",alignItems:"center",flex:"0 0 auto",width:isMobile?120:140,margin:"0 4px"}}>
-                    <div style={{width:1.5,height:20,background:"#C8922A"}} />
-                    <div style={{background:"#F7F6F1",borderRadius:10,padding:"10px 12px",border:"0.5px solid #e2e2e0",width:"100%",boxSizing:"border-box",display:"flex",flexDirection:"column",alignItems:"center",gap:5}}>
-                      <Avatar nama={rep.nama} size={34} />
-                      <div style={{textAlign:"center"}}>
-                        <div style={{fontSize:10,fontWeight:600,color:"#C8922A",textTransform:"uppercase",letterSpacing:0.4,marginBottom:2}}>{divisi}</div>
-                        <div style={{fontSize:10,color:"#1a1a18",fontWeight:500,lineHeight:1.3}}>{rep.nama}</div>
-                        <div style={{fontSize:9,color:"#888780",marginTop:1}}>{rep.jabatan}</div>
+                  <div key={divisi} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center"}}>
+                    <VLine h={20} color={lc} />
+                    <div style={{border:`1.5px solid ${color}`,borderRadius:6,width:"95%",overflow:"hidden"}}>
+                      <div style={{background:color,padding:"7px 6px",textAlign:"center"}}>
+                        <div style={{fontSize:8,fontWeight:700,color:"#fff",textTransform:"uppercase",letterSpacing:0.5}}>DIVISI</div>
+                        <div style={{fontSize:10,fontWeight:700,color:"#fff",textTransform:"uppercase",letterSpacing:0.3,lineHeight:1.3}}>{divisi}</div>
+                      </div>
+                      <div style={{background:"#fff",padding:"8px 7px",textAlign:"center"}}>
+                        {ketDiv
+                          ? <div style={{fontSize:9,fontWeight:700,color:color,lineHeight:1.4}}>{ketDiv.nama}</div>
+                          : <div style={{fontSize:9,color:"#aaa"}}>—</div>
+                        }
                       </div>
                     </div>
                   </div>
@@ -628,7 +716,16 @@ function StrukturOrganisasi({ pengurus }) {
 }
 
 function Pengurus({ data }) {
-  const divisiList = [...new Set(data.pengurus.map(p => p.divisi || "Umum"))];
+  const rawDivisiList = [...new Set(data.pengurus.map(p => p.divisi || "Umum"))];
+  const divisiList = rawDivisiList.sort((a, b) => {
+    const rank = d => {
+      if (/ketua rw|rw 02|pembina/i.test(d)) return 0;
+      if (/dewan|pertimbangan/i.test(d)) return 2;
+      if (/umum/i.test(d)) return 2;
+      return 1;
+    };
+    return rank(a) - rank(b);
+  });
   const byDivisi = divisiList.map(d => ({
     divisi: d,
     anggota: data.pengurus.filter(p => (p.divisi || "Umum") === d),
@@ -638,7 +735,9 @@ function Pengurus({ data }) {
     <div style={{maxWidth:1000,margin:"0 auto",padding:"40px 20px"}}>
       <h2 style={{fontWeight:500,margin:"0 0 6px"}}>Struktur pengurus</h2>
       <p style={{color:"#888780",marginBottom:32,fontSize:14}}>Pengurus aktif periode 2023–2025</p>
-      <StrukturOrganisasi pengurus={data.pengurus} />
+      <div style={{marginBottom:40,borderRadius:12,overflow:"hidden",border:"0.5px solid #e2e2e0"}}>
+        <img src="/struktur-organisasi.png" alt="Struktur Organisasi" style={{width:"100%",display:"block"}} />
+      </div>
       {byDivisi.map(({ divisi, anggota }) => (
         <div key={divisi} style={{marginBottom:32}}>
           <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
