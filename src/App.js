@@ -496,7 +496,6 @@ function Login({ onBack, onSuccess }) {
         {err && <div style={{fontSize:12,color:"#E24B4A",marginBottom:8}}>{err}</div>}
         <button onClick={handle} style={{width:"100%",background:"#0F6E56",color:"#fff",border:"none",padding:"10px",borderRadius:8,cursor:"pointer",fontWeight:500,marginBottom:8}}>Masuk</button>
         <button onClick={onBack} style={{width:"100%",background:"transparent",border:"none",color:"#888780",cursor:"pointer",fontSize:13}}>Kembali ke website</button>
-        <div style={{marginTop:16,padding:12,background:"#F7F6F1",borderRadius:8,fontSize:12,color:"#888780",textAlign:"center"}}>Default password: <b>kartar2024</b></div>
       </div>
     </div>
   );
@@ -761,7 +760,7 @@ export default function App() {
   };
 
   if(mode==="login") return <Login onBack={()=>setMode("public")} onSuccess={()=>{setIsAdmin(true);setMode("admin");}} />;
-  if(mode==="admin") return <div><Navbar page={page} setPage={setPage} isAdmin={isAdmin} setMode={setMode} /><AdminPanel data={data} setData={saveData} onLogout={()=>setMode("public")} /></div>;
+  if(mode==="admin") return <div><Navbar page={page} setPage={setPage} isAdmin={isAdmin} setMode={setMode} /><AdminPanel data={data} setData={saveData} onLogout={()=>{setIsAdmin(false);setMode("public");}} /></div>;
 
   return (
     <div style={{background:"#FAFAF8",minHeight:"100vh"}}>
