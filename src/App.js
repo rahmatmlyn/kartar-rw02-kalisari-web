@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getData, saveData as fbSave } from "./firebase";
 
-const ADMIN_PASS = "kartar2024";
+const ADMIN_PASS = process.env.REACT_APP_ADMIN_PASSWORD;
 
 const initData = {
   profil: {
