@@ -385,10 +385,13 @@ function Pengurus({ data }) {
         {data.pengurus.map(p=>(
           <div key={p.id} style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:18,display:"flex",alignItems:"center",gap:14}}>
             <Avatar nama={p.nama} size={50} />
-            <div>
-              <div style={{fontWeight:500,fontSize:14,color:"#1a1a18"}}>{p.nama}</div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
+                <div style={{fontWeight:500,fontSize:14,color:"#1a1a18"}}>{p.nama}</div>
+                {p.noAnggota && <span style={{fontSize:10,color:"#C8922A",background:"#FBF3E2",border:"0.5px solid #C8922A",borderRadius:4,padding:"2px 6px",whiteSpace:"nowrap",flexShrink:0}}>#{p.noAnggota}</span>}
+              </div>
               <div style={{fontSize:12,color:"#185FA5",marginTop:2}}>{p.jabatan}</div>
-              <div style={{fontSize:11,color:"#888780",marginTop:2}}>{p.periode}</div>
+              <div style={{fontSize:11,color:"#888780",marginTop:2}}>{p.periode}{p.asalRT ? ` · ${p.asalRT}` : ""}</div>
             </div>
           </div>
         ))}
