@@ -3,6 +3,16 @@ import { getData, saveData as fbSave, getPengurus } from "./firebase";
 
 const ADMIN_PASS = process.env.REACT_APP_ADMIN_PASSWORD;
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+  return isMobile;
+}
+
 const initData = {
   profil: {
     nama: "Karang Taruna RW 02 Kalisari",
@@ -67,29 +77,54 @@ function TingkatBadge({ t }) {
 // ── NAVBAR ────────────────────────────────────────────────────────────
 function Navbar({ page, setPage, isAdmin, setMode }) {
   const nav = ["Beranda","Profil","Kegiatan","Galeri","Pengurus","Penghargaan","Kontak"];
+  const isMobile = useIsMobile();
+  const [open, setOpen] = useState(false);
+  const go = (n) => { setPage(n); setOpen(false); };
   return (
     <nav style={{background:"#fff",borderBottom:"2px solid #C8922A",position:"sticky",top:0,zIndex:100}}>
       <div style={{maxWidth:1100,margin:"0 auto",padding:"0 16px",display:"flex",alignItems:"center",justifyContent:"space-between",height:54}}>
         <div style={{display:"flex",alignItems:"center",gap:9}}>
-          <img src="/logo-kartar.png" alt="Logo Kartar RW 02" style={{width:40,height:40,objectFit:"contain"}} />
-          <span style={{fontWeight:500,fontSize:13,color:"#1a1a18"}}>Karang Taruna Unit RW 02 Kalisari</span>
+          <img src="/logo-kartar.png" alt="Logo Kartar RW 02" style={{width:36,height:36,objectFit:"contain"}} />
+          <span style={{fontWeight:500,fontSize:isMobile?11:13,color:"#1a1a18"}}>{isMobile?"Kartar RW 02":"Karang Taruna Unit RW 02 Kalisari"}</span>
         </div>
-        <div style={{display:"flex",gap:2,alignItems:"center",flexWrap:"wrap"}}>
-          {nav.map(n=>(
-            <button key={n} onClick={()=>setPage(n)} style={{background:page===n?"#E8F0FB":"transparent",color:page===n?"#0D4A8A":"#5F5E5A",border:"none",padding:"5px 10px",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:page===n?500:400}}>{n}</button>
-          ))}
-          {isAdmin
-            ? <button onClick={()=>setMode("admin")} style={{marginLeft:6,background:"#C8922A",color:"#fff",border:"none",padding:"6px 12px",borderRadius:6,cursor:"pointer",fontSize:12}}>Panel Admin</button>
-            : <button onClick={()=>setMode("login")} style={{marginLeft:6,background:"transparent",color:"#5F5E5A",border:"0.5px solid #ccc",padding:"6px 12px",borderRadius:6,cursor:"pointer",fontSize:12}}>Admin</button>
-          }
-        </div>
+        {isMobile ? (
+          <button onClick={()=>setOpen(!open)} style={{background:"none",border:"none",cursor:"pointer",padding:8,display:"flex",flexDirection:"column",gap:5}}>
+            <span style={{display:"block",width:22,height:2,background:"#1a1a18",borderRadius:2,transition:"all 0.2s"}} />
+            <span style={{display:"block",width:22,height:2,background:"#1a1a18",borderRadius:2,transition:"all 0.2s"}} />
+            <span style={{display:"block",width:22,height:2,background:"#1a1a18",borderRadius:2,transition:"all 0.2s"}} />
+          </button>
+        ) : (
+          <div style={{display:"flex",gap:2,alignItems:"center"}}>
+            {nav.map(n=>(
+              <button key={n} onClick={()=>setPage(n)} style={{background:page===n?"#E8F0FB":"transparent",color:page===n?"#0D4A8A":"#5F5E5A",border:"none",padding:"5px 10px",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:page===n?500:400}}>{n}</button>
+            ))}
+            {isAdmin
+              ? <button onClick={()=>setMode("admin")} style={{marginLeft:6,background:"#C8922A",color:"#fff",border:"none",padding:"6px 12px",borderRadius:6,cursor:"pointer",fontSize:12}}>Panel Admin</button>
+              : <button onClick={()=>setMode("login")} style={{marginLeft:6,background:"transparent",color:"#5F5E5A",border:"0.5px solid #ccc",padding:"6px 12px",borderRadius:6,cursor:"pointer",fontSize:12}}>Admin</button>
+            }
+          </div>
+        )}
       </div>
+      {isMobile && open && (
+        <div style={{background:"#fff",borderTop:"0.5px solid #e8e8e5",padding:"12px 16px",display:"flex",flexDirection:"column",gap:2}}>
+          {nav.map(n=>(
+            <button key={n} onClick={()=>go(n)} style={{background:page===n?"#E8F0FB":"transparent",color:page===n?"#0D4A8A":"#5F5E5A",border:"none",padding:"10px 12px",borderRadius:6,cursor:"pointer",fontSize:14,fontWeight:page===n?500:400,textAlign:"left"}}>{n}</button>
+          ))}
+          <div style={{borderTop:"0.5px solid #e8e8e5",marginTop:6,paddingTop:6}}>
+            {isAdmin
+              ? <button onClick={()=>{setMode("admin");setOpen(false);}} style={{width:"100%",background:"#C8922A",color:"#fff",border:"none",padding:"10px",borderRadius:6,cursor:"pointer",fontSize:13,fontWeight:500}}>Panel Admin</button>
+              : <button onClick={()=>{setMode("login");setOpen(false);}} style={{width:"100%",background:"transparent",color:"#5F5E5A",border:"0.5px solid #ccc",padding:"10px",borderRadius:6,cursor:"pointer",fontSize:13}}>Admin</button>
+            }
+          </div>
+        </div>
+      )}
     </nav>
   );
 }
 
 // ── BERANDA (REDESIGNED) ──────────────────────────────────────────────
 function Beranda({ data, setPage }) {
+  const isMobile = useIsMobile();
   const recent = [...data.kegiatan].sort((a,b)=>b.tanggal.localeCompare(a.tanggal)).slice(0,3);
   const bidang = [
     { icon:"🤝", label:"Sosial & Kemasyarakatan", desc:"Bakti sosial, santunan, dan program kemanusiaan untuk warga RW 02", color:"#FAECE7", tc:"#993C1D" },
@@ -118,7 +153,7 @@ function Beranda({ data, setPage }) {
             <span style={{width:6,height:6,borderRadius:"50%",background:"#C8922A",display:"inline-block"}} />
             Aktif sejak {data.profil.berdiri} · {new Date().getFullYear() - parseInt(data.profil.berdiri)} tahun bergerak bersama warga
           </div>
-          <h1 style={{fontSize:34,fontWeight:500,margin:"0 0 10px",lineHeight:1.25}}>{data.profil.nama}</h1>
+          <h1 style={{fontSize:isMobile?22:34,fontWeight:500,margin:"0 0 10px",lineHeight:1.25}}>{data.profil.nama}</h1>
           <p style={{fontSize:16,opacity:0.85,margin:"0 0 10px",fontWeight:400}}><em>{data.profil.tagline}</em></p>
           <p style={{fontSize:14,opacity:0.75,margin:"0 0 30px",lineHeight:1.7,maxWidth:560,marginLeft:"auto",marginRight:"auto"}}>Organisasi dari masyarakat yang bergerak karena hati menciptakan sebuah aksi untuk masyarakat dan menciptakan kemandirian.</p>
           <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap",marginBottom:40}}>
@@ -126,7 +161,7 @@ function Beranda({ data, setPage }) {
             <button onClick={()=>setPage("Profil")} style={{background:"transparent",color:"#fff",border:"1.5px solid rgba(255,255,255,0.5)",padding:"10px 22px",borderRadius:8,cursor:"pointer",fontSize:14}}>Tentang Kami</button>
           </div>
           {/* Stats bar */}
-          <div style={{background:"rgba(255,255,255,0.1)",borderTop:"2px solid rgba(200,146,42,0.6)",borderRadius:"12px 12px 0 0",padding:"20px 24px",display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,textAlign:"center"}}>
+          <div style={{background:"rgba(255,255,255,0.1)",borderTop:"2px solid rgba(200,146,42,0.6)",borderRadius:"12px 12px 0 0",padding:"16px 20px",display:"grid",gridTemplateColumns:isMobile?"repeat(2,1fr)":"repeat(4,1fr)",gap:8,textAlign:"center"}}>
             {[{v:data.profil.berdiri,l:"Tahun Berdiri"},{v:data.profil.anggota,l:"Anggota Aktif"},{v:data.profil.kegiatan,l:"Total Kegiatan"},{v:data.profil.penghargaan,l:"Penghargaan"}].map(s=>(
               <div key={s.l}>
                 <div style={{fontSize:22,fontWeight:500}}>{s.v}</div>
@@ -139,10 +174,10 @@ function Beranda({ data, setPage }) {
 
       {/* ── TENTANG SINGKAT ── */}
       <div style={{maxWidth:1100,margin:"0 auto",padding:"48px 20px 32px"}}>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:32,alignItems:"center"}}>
+        <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:isMobile?20:32,alignItems:"center"}}>
           <div>
             <div style={{fontSize:11,color:"#185FA5",fontWeight:500,letterSpacing:1,textTransform:"uppercase",marginBottom:8}}>Siapa kami</div>
-            <h2 style={{fontSize:22,fontWeight:500,margin:"0 0 14px",color:"#1a1a18",lineHeight:1.35}}>Organisasi kepemudaan yang tumbuh bersama warga</h2>
+            <h2 style={{fontSize:isMobile?18:22,fontWeight:500,margin:"0 0 14px",color:"#1a1a18",lineHeight:1.35}}>Organisasi kepemudaan yang tumbuh bersama warga</h2>
             <p style={{fontSize:14,color:"#5F5E5A",lineHeight:1.8,margin:"0 0 16px"}}>{data.profil.deskripsi}</p>
             <button onClick={()=>setPage("Profil")} style={{background:"transparent",border:"none",color:"#185FA5",cursor:"pointer",fontSize:13,padding:0,fontWeight:500}}>Baca selengkapnya →</button>
           </div>
@@ -199,19 +234,29 @@ function Beranda({ data, setPage }) {
           <h2 style={{fontSize:20,fontWeight:500,margin:0,color:"#1a1a18"}}>5 tahun penuh dedikasi</h2>
         </div>
         <div style={{position:"relative"}}>
-          <div style={{position:"absolute",top:18,left:"calc(50% - 0.5px)",width:"0.5px",background:"#d4d4d0",height:"calc(100% - 36px)"}} />
+          <div style={{position:"absolute",top:18,left:isMobile?17:"calc(50% - 0.5px)",width:"0.5px",background:"#d4d4d0",height:"calc(100% - 36px)"}} />
           <div style={{display:"flex",flexDirection:"column",gap:0}}>
             {timeline.map((t,i)=>(
-              <div key={t.tahun} style={{display:"flex",gap:0,alignItems:"flex-start",marginBottom:24,flexDirection:i%2===0?"row":"row-reverse"}}>
-                <div style={{flex:1,padding:i%2===0?"0 32px 0 0":"0 0 0 32px",textAlign:i%2===0?"right":"left"}}>
-                  <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:10,padding:"14px 16px",display:"inline-block",maxWidth:260}}>
+              isMobile ? (
+                <div key={t.tahun} style={{display:"flex",gap:14,alignItems:"flex-start",marginBottom:20}}>
+                  <div style={{width:36,height:36,borderRadius:"50%",background:"#185FA5",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:500,flexShrink:0,zIndex:1}}>{t.tahun.slice(2)}</div>
+                  <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:10,padding:"12px 14px",flex:1}}>
                     <div style={{fontWeight:500,fontSize:13,color:"#1a1a18",marginBottom:4}}>{t.label}</div>
                     <div style={{fontSize:12,color:"#5F5E5A",lineHeight:1.6}}>{t.desc}</div>
                   </div>
                 </div>
-                <div style={{width:36,height:36,borderRadius:"50%",background:"#185FA5",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:500,flexShrink:0,zIndex:1}}>{t.tahun.slice(2)}</div>
-                <div style={{flex:1}} />
-              </div>
+              ) : (
+                <div key={t.tahun} style={{display:"flex",gap:0,alignItems:"flex-start",marginBottom:24,flexDirection:i%2===0?"row":"row-reverse"}}>
+                  <div style={{flex:1,padding:i%2===0?"0 32px 0 0":"0 0 0 32px",textAlign:i%2===0?"right":"left"}}>
+                    <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:10,padding:"14px 16px",display:"inline-block",maxWidth:260}}>
+                      <div style={{fontWeight:500,fontSize:13,color:"#1a1a18",marginBottom:4}}>{t.label}</div>
+                      <div style={{fontSize:12,color:"#5F5E5A",lineHeight:1.6}}>{t.desc}</div>
+                    </div>
+                  </div>
+                  <div style={{width:36,height:36,borderRadius:"50%",background:"#185FA5",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:500,flexShrink:0,zIndex:1}}>{t.tahun.slice(2)}</div>
+                  <div style={{flex:1}} />
+                </div>
+              )
             ))}
           </div>
         </div>
@@ -248,10 +293,10 @@ function Beranda({ data, setPage }) {
 
       {/* ── PENGHARGAAN HIGHLIGHT ── */}
       <div style={{maxWidth:1100,margin:"0 auto",padding:"48px 20px"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20,flexWrap:"wrap",gap:8}}>
           <div>
             <div style={{fontSize:11,color:"#185FA5",fontWeight:500,letterSpacing:1,textTransform:"uppercase",marginBottom:4}}>Prestasi</div>
-            <h2 style={{margin:0,fontSize:20,fontWeight:500,color:"#1a1a18"}}>Penghargaan yang kami raih</h2>
+            <h2 style={{margin:0,fontSize:isMobile?16:20,fontWeight:500,color:"#1a1a18"}}>Penghargaan yang kami raih</h2>
           </div>
           <button onClick={()=>setPage("Penghargaan")} style={{background:"transparent",border:"none",color:"#185FA5",cursor:"pointer",fontSize:13,fontWeight:500}}>Lihat semua →</button>
         </div>
@@ -287,6 +332,7 @@ function Beranda({ data, setPage }) {
 
 // ── PROFIL ────────────────────────────────────────────────────────────
 function Profil({ data }) {
+  const isMobile = useIsMobile();
   const stats = [
     {label:"Tahun Berdiri", val:data.profil.berdiri, icon:"📅"},
     {label:"Anggota Aktif", val:data.profil.anggota, icon:"👥"},
@@ -304,7 +350,7 @@ function Profil({ data }) {
       </div>
 
       {/* Stats bar */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:32}}>
+      <div style={{display:"grid",gridTemplateColumns:isMobile?"repeat(2,1fr)":"repeat(4,1fr)",gap:12,marginBottom:32}}>
         {stats.map(s=>(
           <div key={s.label} style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:"16px 20px",textAlign:"center"}}>
             <div style={{fontSize:22,fontWeight:600,color:"#185FA5"}}>{s.val}</div>
@@ -314,7 +360,7 @@ function Profil({ data }) {
       </div>
 
       {/* Deskripsi + Visi Misi */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20,marginBottom:20}}>
+      <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:20,marginBottom:20}}>
 
         {/* Deskripsi */}
         <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:24}}>
@@ -343,7 +389,7 @@ function Profil({ data }) {
       </div>
 
       {/* Nilai & Lokasi */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
+      <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:20}}>
         <div style={{background:"#EEEDFE",borderRadius:12,padding:20}}>
           <div style={{fontSize:11,fontWeight:500,color:"#533AB7",textTransform:"uppercase",letterSpacing:0.8,marginBottom:8}}>Nilai organisasi</div>
           <p style={{fontSize:13,color:"#3C3489",lineHeight:1.7,margin:0}}>{data.profil.nilai || "Gotong royong, inovatif, inklusif, dan berorientasi dampak"}</p>
@@ -533,11 +579,12 @@ function Penghargaan({ data }) {
 
 // ── KONTAK ────────────────────────────────────────────────────────────
 function Kontak() {
+  const isMobile = useIsMobile();
   return (
     <div style={{maxWidth:800,margin:"0 auto",padding:"40px 20px"}}>
       <h2 style={{fontWeight:500,margin:"0 0 6px"}}>Kontak & media sosial</h2>
       <p style={{color:"#888780",marginBottom:32,fontSize:14}}>Hubungi kami atau ikuti perkembangan terbaru</p>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:24}}>
+      <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:16,marginBottom:24}}>
         <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:20}}>
           <div style={{fontWeight:500,marginBottom:10,color:"#1a1a18"}}>Alamat</div>
           <p style={{fontSize:13,color:"#5F5E5A",lineHeight:1.7,margin:0}}>RW 02 Kalisari<br/>Kelurahan Kalisari, Kec. Pasar Rebo<br/>Jakarta Timur, DKI Jakarta</p>
@@ -562,9 +609,10 @@ function Kontak() {
 // ── FOOTER ────────────────────────────────────────────────────────────
 function Footer({ setPage }) {
   const nav = ["Beranda","Profil","Kegiatan","Galeri","Pengurus","Penghargaan","Kontak"];
+  const isMobile = useIsMobile();
   return (
     <footer style={{background:"#1a1a18",color:"#ccc",marginTop:60}}>
-      <div style={{maxWidth:1100,margin:"0 auto",padding:"48px 24px 28px",display:"grid",gridTemplateColumns:"2fr 1fr 1fr",gap:40}}>
+      <div style={{maxWidth:1100,margin:"0 auto",padding:isMobile?"32px 20px 24px":"48px 24px 28px",display:"grid",gridTemplateColumns:isMobile?"1fr":"2fr 1fr 1fr",gap:isMobile?24:40}}>
 
         {/* Kolom kiri — identitas */}
         <div>
