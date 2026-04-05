@@ -42,6 +42,7 @@ export async function getPengurus() {
   const iNoAnggota = idx("no anggota");
   const iNama      = idx("nama");
   const iJabatan   = idx("jabatan");
+  const iDivisi    = idx("divisi");
   const iPeriode   = idx("periode");
   const iRT        = idx("rt");
   const iFoto      = idx("foto");
@@ -54,6 +55,7 @@ export async function getPengurus() {
       noAnggota: r[iNoAnggota] || "",
       nama:      r[iNama]      || "",
       jabatan:   r[iJabatan]   || "",
+      divisi:    iDivisi >= 0 ? (r[iDivisi] || "Umum") : "Umum",
       periode:   r[iPeriode]   || "",
       asalRT:    r[iRT]        || "",
       foto:      r[iFoto]      || "",

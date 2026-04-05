@@ -377,25 +377,42 @@ function Galeri({ data }) {
 
 // ── PENGURUS ──────────────────────────────────────────────────────────
 function Pengurus({ data }) {
+  const divisiList = [...new Set(data.pengurus.map(p => p.divisi || "Umum"))];
+  const byDivisi = divisiList.map(d => ({
+    divisi: d,
+    anggota: data.pengurus.filter(p => (p.divisi || "Umum") === d),
+  }));
+
   return (
     <div style={{maxWidth:1000,margin:"0 auto",padding:"40px 20px"}}>
       <h2 style={{fontWeight:500,margin:"0 0 6px"}}>Struktur pengurus</h2>
       <p style={{color:"#888780",marginBottom:32,fontSize:14}}>Pengurus aktif periode 2023–2025</p>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:14}}>
-        {data.pengurus.map(p=>(
-          <div key={p.id} style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:18,display:"flex",alignItems:"center",gap:14}}>
-            <Avatar nama={p.nama} size={50} />
-            <div style={{flex:1,minWidth:0}}>
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
-                <div style={{fontWeight:500,fontSize:14,color:"#1a1a18"}}>{p.nama}</div>
-                {p.noAnggota && <span style={{fontSize:10,color:"#C8922A",background:"#FBF3E2",border:"0.5px solid #C8922A",borderRadius:4,padding:"2px 6px",whiteSpace:"nowrap",flexShrink:0}}>#{p.noAnggota}</span>}
-              </div>
-              <div style={{fontSize:12,color:"#185FA5",marginTop:2}}>{p.jabatan}</div>
-              <div style={{fontSize:11,color:"#888780",marginTop:2}}>{p.periode}{p.asalRT ? ` · ${p.asalRT}` : ""}</div>
-            </div>
+      {byDivisi.map(({ divisi, anggota }) => (
+        <div key={divisi} style={{marginBottom:32}}>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+            <div style={{height:1,width:16,background:"#C8922A"}} />
+            <span style={{fontSize:12,fontWeight:600,color:"#C8922A",letterSpacing:0.8,textTransform:"uppercase"}}>{divisi}</span>
+            <div style={{height:1,flex:1,background:"#e2e2e0"}} />
+            <span style={{fontSize:11,color:"#888780"}}>{anggota.length} orang</span>
           </div>
-        ))}
-      </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:12}}>
+            {anggota.map(p => (
+              <div key={p.id} style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:18,display:"flex",alignItems:"center",gap:14}}>
+                <Avatar nama={p.nama} size={50} />
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}}>
+                    <div style={{fontWeight:500,fontSize:14,color:"#1a1a18"}}>{p.nama}</div>
+                    {p.noAnggota && <span style={{fontSize:10,color:"#C8922A",background:"#FBF3E2",border:"0.5px solid #C8922A",borderRadius:4,padding:"2px 6px",whiteSpace:"nowrap",flexShrink:0}}>#{p.noAnggota}</span>}
+                  </div>
+                  <div style={{fontSize:12,color:"#185FA5",marginTop:2}}>{p.jabatan}</div>
+                  {p.periode && <div style={{fontSize:11,color:"#888780",marginTop:1}}>{p.periode}</div>}
+                  {p.asalRT && <div style={{fontSize:11,color:"#888780",marginTop:1}}>Asal RT: <span style={{color:"#1a1a18"}}>{p.asalRT}</span></div>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
