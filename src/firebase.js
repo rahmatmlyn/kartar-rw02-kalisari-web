@@ -26,3 +26,36 @@ export async function saveData(data) {
   const ref = doc(db, "website", "data");
   await setDoc(ref, data);
 }
+
+// Helper: ambil data pengurus dari Google Sheets (CSV)
+export async function getPengurus() {
+  const url = process.env.REACT_APP_SPREADSHEET_URL;
+  if (!url) return null;
+
+  const res = await fetch(url);
+  const text = await res.text();
+  const rows = text.trim().split("\n").map(r => r.split(",").map(c => c.trim().replace(/^"|"$/g, "")));
+
+  const [header, ...data] = rows;
+  const idx = k => header.findIndex(h => h.toLowerCase().includes(k.toLowerCase()));
+
+  const iNoAnggota = idx("no anggota");
+  const iNama      = idx("nama");
+  const iJabatan   = idx("jabatan");
+  const iPeriode   = idx("periode");
+  const iRT        = idx("rt");
+  const iFoto      = idx("foto");
+  const iStatus    = idx("status");
+
+  return data
+    .filter(r => r[iStatus]?.toLowerCase() !== "nonaktif" && r[iNama])
+    .map((r, i) => ({
+      id: i + 1,
+      noAnggota: r[iNoAnggota] || "",
+      nama:      r[iNama]      || "",
+      jabatan:   r[iJabatan]   || "",
+      periode:   r[iPeriode]   || "",
+      asalRT:    r[iRT]        || "",
+      foto:      r[iFoto]      || "",
+    }));
+}

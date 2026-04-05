@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { getData, saveData as fbSave } from "./firebase";
+import { getData, saveData as fbSave, getPengurus } from "./firebase";
 
 const ADMIN_PASS = process.env.REACT_APP_ADMIN_PASSWORD;
 
 const initData = {
   profil: {
     nama: "Karang Taruna RW 02 Kalisari",
-    tagline: "Bersatu, Bergerak, Berkembang",
+    tagline: "Hati, Aksi, Mandiri",
     deskripsi: "Karang Taruna RW 02 Kalisari adalah organisasi kepemudaan yang berdiri sejak 2019 dan telah aktif bergerak selama 5 tahun dalam bidang sosial, seni budaya, olahraga, dan pemberdayaan masyarakat. Kami berkomitmen untuk menjadi wadah kreativitas dan kepedulian pemuda demi lingkungan RW 02 yang lebih maju dan harmonis.",
     berdiri: "2019", anggota: "85+", kegiatan: "50+", penghargaan: "3",
     visi: "Menjadi organisasi kepemudaan yang mandiri, kreatif, dan berdaya guna dalam membangun masyarakat RW 02 Kalisari yang sejahtera dan harmonis.",
@@ -69,7 +69,7 @@ function Navbar({ page, setPage, isAdmin, setMode }) {
     <nav style={{background:"#fff",borderBottom:"0.5px solid #e2e2e0",position:"sticky",top:0,zIndex:100}}>
       <div style={{maxWidth:1100,margin:"0 auto",padding:"0 16px",display:"flex",alignItems:"center",justifyContent:"space-between",height:54}}>
         <div style={{display:"flex",alignItems:"center",gap:9}}>
-          <div style={{width:34,height:34,borderRadius:8,background:"#0F6E56",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:500,fontSize:13}}>KT</div>
+          <img src="/logo-kartar.png" alt="Logo Kartar RW 02" style={{width:40,height:40,objectFit:"contain"}} />
           <span style={{fontWeight:500,fontSize:13,color:"#1a1a18"}}>Kartar RW 02 Kalisari</span>
         </div>
         <div style={{display:"flex",gap:2,alignItems:"center",flexWrap:"wrap"}}>
@@ -117,8 +117,8 @@ function Beranda({ data, setPage }) {
             Aktif sejak 2019 · 5 tahun bergerak bersama warga
           </div>
           <h1 style={{fontSize:34,fontWeight:500,margin:"0 0 10px",lineHeight:1.25}}>Karang Taruna RW 02 Kalisari</h1>
-          <p style={{fontSize:16,opacity:0.85,margin:"0 0 10px",fontWeight:400}}><em>Bersatu, Bergerak, Berkembang</em></p>
-          <p style={{fontSize:14,opacity:0.75,margin:"0 0 30px",lineHeight:1.7,maxWidth:560,marginLeft:"auto",marginRight:"auto"}}>Wadah pemuda RW 02 Kalisari yang bergerak di bidang sosial, seni budaya, olahraga, pendidikan, dan lingkungan hidup — berdampak nyata sejak 2019.</p>
+          <p style={{fontSize:16,opacity:0.85,margin:"0 0 10px",fontWeight:400}}><em>Hati, Aksi, Mandiri</em></p>
+          <p style={{fontSize:14,opacity:0.75,margin:"0 0 30px",lineHeight:1.7,maxWidth:560,marginLeft:"auto",marginRight:"auto"}}>Organisasi dari masyarakat yang bergerak karena hati menciptakan sebuah aksi untuk masyarakat dan menciptakan kemandirian.</p>
           <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap",marginBottom:40}}>
             <button onClick={()=>setPage("Kegiatan")} style={{background:"#fff",color:"#0F6E56",border:"none",padding:"10px 22px",borderRadius:8,cursor:"pointer",fontWeight:500,fontSize:14}}>Lihat Kegiatan</button>
             <button onClick={()=>setPage("Profil")} style={{background:"transparent",color:"#fff",border:"1.5px solid rgba(255,255,255,0.5)",padding:"10px 22px",borderRadius:8,cursor:"pointer",fontSize:14}}>Tentang Kami</button>
@@ -737,8 +737,9 @@ export default function App() {
   useEffect(() => {
     (async () => {
       try {
-        const d = await getData();
-        if (d) setData(d);
+        const [d, p] = await Promise.all([getData(), getPengurus()]);
+        if (d) setData(prev => ({ ...prev, ...d, pengurus: p || d.pengurus || prev.pengurus }));
+        else if (p) setData(prev => ({ ...prev, pengurus: p }));
       } catch (e) {
         console.error(e);
       }
