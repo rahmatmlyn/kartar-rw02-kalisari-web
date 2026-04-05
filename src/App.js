@@ -872,8 +872,8 @@ function Footer({ setPage }) {
           <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
             <img src="/logo-kartar.png" alt="Logo" style={{width:40,height:40,objectFit:"contain"}} />
             <div>
-              <div style={{fontWeight:500,fontSize:14,color:"#fff"}}>Kartar RW 02 Kalisari</div>
-              <div style={{fontSize:11,color:"#888780",marginTop:1}}>Bersatu, Bergerak, Berkembang</div>
+              <div style={{fontWeight:500,fontSize:14,color:"#fff"}}>Karang Taruna Unit RW 02 Kalisari</div>
+              <div style={{fontSize:11,color:"#888780",marginTop:1}}>HATI, AKSI, MANDIRI</div>
             </div>
           </div>
           <p style={{fontSize:13,lineHeight:1.8,color:"#888780",margin:"0 0 16px",maxWidth:300}}>
@@ -980,7 +980,7 @@ function AdminPanel({ data, setData, onLogout }) {
       </div>
       {msg && <div style={{background:msg.startsWith("Gagal")?"#FAECE7":"#E8F0FB",color:msg.startsWith("Gagal")?"#993C1D":"#0A3670",padding:"10px 16px",borderRadius:8,marginBottom:16,fontSize:13}}>{msg}</div>}
       <div style={{display:"flex",gap:6,marginBottom:24,borderBottom:"0.5px solid #e8e8e5",paddingBottom:12,flexWrap:"wrap"}}>
-        {[["profil","Profil"],["kegiatan","Kegiatan"],["galeri","Galeri"],["pengurus","Pengurus"],["penghargaan","Penghargaan"]].map(([k,l])=>(
+        {[["profil","Profil"],["kegiatan","Kegiatan"],["galeri","Galeri"],["pengurus","Pengurus"],["penghargaan","Penghargaan"],["feedback","Kritik & Saran"]].map(([k,l])=>(
           <button key={k} onClick={()=>setTab(k)} style={{background:tab===k?"#E8F0FB":"transparent",color:tab===k?"#0A3670":"#5F5E5A",border:"none",padding:"7px 16px",borderRadius:6,cursor:"pointer",fontSize:13,fontWeight:tab===k?500:400}}>{l}</button>
         ))}
       </div>
@@ -989,6 +989,7 @@ function AdminPanel({ data, setData, onLogout }) {
       {tab==="galeri" && <AdminGaleri data={data} save={save} />}
       {tab==="pengurus" && <AdminPengurus data={data} save={save} />}
       {tab==="penghargaan" && <AdminPenghargaan data={data} save={save} />}
+      {tab==="feedback" && <AdminFeedback />}
     </div>
   );
 }
@@ -1154,6 +1155,89 @@ function AdminPengurus({ data, save }) {
             <div style={{flex:1}}><div style={{fontWeight:500,fontSize:13,color:"#1a1a18"}}>{p.nama}</div><div style={{fontSize:12,color:"#185FA5"}}>{p.jabatan} · {p.periode}</div></div>
             <button onClick={()=>{setEdit(p.id);setForm({...p});}} style={{background:"transparent",border:"0.5px solid #ddd",padding:"4px 10px",borderRadius:6,cursor:"pointer",fontSize:12}}>Edit</button>
             <button onClick={()=>del(p.id)} style={{background:"transparent",border:"0.5px solid #F09595",color:"#E24B4A",padding:"4px 10px",borderRadius:6,cursor:"pointer",fontSize:12}}>Hapus</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AdminFeedback() {
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [konfirmHapus, setKonfirmHapus] = useState(null);
+  const [filter, setFilter] = useState("Semua");
+
+  useEffect(() => {
+    const unsub = subscribeFeedback(setFeedbacks);
+    return () => unsub();
+  }, []);
+
+  const hapus = async (id) => { await hapusFeedback(id); setKonfirmHapus(null); };
+
+  const formatWaktu = (ts) => {
+    if (!ts) return "-";
+    const d = ts.toDate ? ts.toDate() : new Date(ts);
+    return d.toLocaleDateString("id-ID", { day:"numeric", month:"short", year:"numeric" }) + " · " + d.toLocaleTimeString("id-ID", { hour:"2-digit", minute:"2-digit" });
+  };
+
+  const filtered = filter==="Semua" ? feedbacks : feedbacks.filter(f=>f.kategori===filter);
+  const jmlKritik = feedbacks.filter(f=>f.kategori==="Kritik").length;
+  const jmlSaran  = feedbacks.filter(f=>f.kategori==="Saran").length;
+
+  return (
+    <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:24}}>
+      {/* Header stats */}
+      <div style={{display:"flex",gap:12,marginBottom:20,flexWrap:"wrap"}}>
+        <div style={{background:"#E8F0FB",borderRadius:10,padding:"12px 20px",flex:1,minWidth:100}}>
+          <div style={{fontSize:22,fontWeight:600,color:"#185FA5"}}>{feedbacks.length}</div>
+          <div style={{fontSize:11,color:"#5F5E5A",marginTop:2}}>Total Pesan</div>
+        </div>
+        <div style={{background:"#E8F0FB",borderRadius:10,padding:"12px 20px",flex:1,minWidth:100}}>
+          <div style={{fontSize:22,fontWeight:600,color:"#185FA5"}}>{jmlSaran}</div>
+          <div style={{fontSize:11,color:"#5F5E5A",marginTop:2}}>Saran</div>
+        </div>
+        <div style={{background:"#FAECE7",borderRadius:10,padding:"12px 20px",flex:1,minWidth:100}}>
+          <div style={{fontSize:22,fontWeight:600,color:"#993C1D"}}>{jmlKritik}</div>
+          <div style={{fontSize:11,color:"#5F5E5A",marginTop:2}}>Kritik</div>
+        </div>
+      </div>
+
+      {/* Filter */}
+      <div style={{display:"flex",gap:8,marginBottom:16}}>
+        {["Semua","Saran","Kritik"].map(k=>(
+          <button key={k} onClick={()=>setFilter(k)}
+            style={{padding:"5px 14px",borderRadius:20,border:"0.5px solid",fontSize:12,cursor:"pointer",
+              background:filter===k?(k==="Kritik"?"#FAECE7":k==="Saran"?"#E8F0FB":"#1a1a18"):"#fff",
+              color:filter===k?(k==="Kritik"?"#993C1D":k==="Saran"?"#0A3670":"#fff"):"#5F5E5A",
+              borderColor:filter===k?(k==="Kritik"?"#E24B4A":k==="Saran"?"#185FA5":"#1a1a18"):"#ddd"}}>
+            {k}
+          </button>
+        ))}
+      </div>
+
+      {/* List */}
+      {filtered.length === 0 && <p style={{color:"#888780",fontSize:13,textAlign:"center",padding:"24px 0"}}>Tidak ada pesan.</p>}
+      <div style={{display:"flex",flexDirection:"column",gap:10}}>
+        {filtered.map(f=>(
+          <div key={f.id} style={{border:konfirmHapus===f.id?"1px solid #E24B4A":"0.5px solid #e2e2e0",borderRadius:10,padding:"14px 16px"}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6,flexWrap:"wrap"}}>
+              <span style={{fontWeight:500,fontSize:13,color:"#1a1a18"}}>{f.nama||"Anonim"}</span>
+              <span style={{background:f.kategori==="Kritik"?"#FAECE7":"#E8F0FB",color:f.kategori==="Kritik"?"#993C1D":"#0A3670",fontSize:10,fontWeight:500,padding:"2px 8px",borderRadius:10}}>{f.kategori}</span>
+              <span style={{fontSize:11,color:"#888780",marginLeft:"auto"}}>{formatWaktu(f.timestamp)}</span>
+              {konfirmHapus!==f.id && (
+                <button onClick={()=>setKonfirmHapus(f.id)} style={{background:"#FAECE7",color:"#993C1D",border:"none",padding:"3px 10px",borderRadius:6,cursor:"pointer",fontSize:11}}>Hapus</button>
+              )}
+            </div>
+            <p style={{margin:0,fontSize:13,color:"#5F5E5A",lineHeight:1.6}}>{f.pesan}</p>
+            {konfirmHapus===f.id && (
+              <div style={{marginTop:10,padding:"10px 12px",background:"#FAECE7",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,flexWrap:"wrap"}}>
+                <span style={{fontSize:12,color:"#993C1D",fontWeight:500}}>Yakin hapus pesan ini?</span>
+                <div style={{display:"flex",gap:6}}>
+                  <button onClick={()=>setKonfirmHapus(null)} style={{background:"#fff",color:"#5F5E5A",border:"0.5px solid #ddd",padding:"4px 12px",borderRadius:6,cursor:"pointer",fontSize:12}}>Batal</button>
+                  <button onClick={()=>hapus(f.id)} style={{background:"#E24B4A",color:"#fff",border:"none",padding:"4px 12px",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:500}}>Hapus</button>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
