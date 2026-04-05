@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -13,6 +14,16 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
+export const storage = getStorage(app);
+
+// Helper: upload foto ke Firebase Storage, return download URL
+export async function uploadFoto(file, folder = "kegiatan") {
+  const ext = file.name.split(".").pop();
+  const path = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+  const storageRef = ref(storage, path);
+  await uploadBytes(storageRef, file);
+  return getDownloadURL(storageRef);
+}
 
 // Helper: ambil data
 export async function getData() {

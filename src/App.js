@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getData, saveData as fbSave, getPengurus, kirimFeedback, subscribeFeedback, hapusFeedback } from "./firebase";
+import { getData, saveData as fbSave, getPengurus, kirimFeedback, subscribeFeedback, hapusFeedback, uploadFoto } from "./firebase";
 
 const ADMIN_PASS = process.env.REACT_APP_ADMIN_PASSWORD;
 
@@ -861,6 +861,42 @@ function Field({ label, val, onChange, type="text", textarea=false }) {
   );
 }
 
+function FotoField({ label="Foto", val, onChange, folder="kegiatan" }) {
+  const [loading, setLoading] = useState(false);
+  const handleFile = async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setLoading(true);
+    try {
+      const url = await uploadFoto(file, folder);
+      onChange(url);
+    } catch (err) {
+      alert("Upload gagal: " + err.message);
+    } finally {
+      setLoading(false);
+      e.target.value = "";
+    }
+  };
+  return (
+    <div style={{marginBottom:12}}>
+      <label style={{fontSize:12,color:"#888780",display:"block",marginBottom:4}}>{label}</label>
+      <div style={{display:"flex",gap:8,alignItems:"center"}}>
+        <input value={val} onChange={e=>onChange(e.target.value)} placeholder="Paste URL atau upload file..."
+          style={{flex:1,boxSizing:"border-box",padding:"6px 8px",border:"1px solid #ddd",borderRadius:4,fontSize:13}} />
+        <label style={{
+          display:"inline-flex",alignItems:"center",gap:5,cursor: loading ? "default":"pointer",
+          background: loading ? "#aaa" : "#185FA5",color:"#fff",
+          padding:"6px 12px",borderRadius:6,fontSize:12,whiteSpace:"nowrap",flexShrink:0
+        }}>
+          {loading ? "Mengupload…" : "📁 Upload"}
+          <input type="file" accept="image/*" onChange={handleFile} disabled={loading} style={{display:"none"}} />
+        </label>
+      </div>
+      {val && <img src={val} alt="" style={{marginTop:8,height:64,borderRadius:6,objectFit:"cover",border:"0.5px solid #e2e2e0"}} />}
+    </div>
+  );
+}
+
 function AdminPanel({ data, setData, onLogout }) {
   const [tab, setTab] = useState("profil");
   const [msg, setMsg] = useState("");
@@ -969,7 +1005,7 @@ function AdminKegiatan({ data, save }) {
             <Field label="Judul" val={form.judul} onChange={upd("judul")} />
             <div style={{marginBottom:12}}><label style={{fontSize:12,color:"#888780",display:"block",marginBottom:4}}>Kategori</label><select value={form.kategori} onChange={e=>upd("kategori")(e.target.value)} style={{width:"100%",boxSizing:"border-box"}}>{CATS.slice(1).map(c=><option key={c}>{c}</option>)}</select></div>
             <Field label="Tanggal" val={form.tanggal} onChange={upd("tanggal")} type="date" />
-            <Field label="URL foto" val={form.foto} onChange={upd("foto")} />
+            <FotoField val={form.foto} onChange={upd("foto")} folder="kegiatan" />
           </div>
           <Field label="Link dokumentasi" val={form.link} onChange={upd("link")} />
           <Field label="Deskripsi" val={form.deskripsi} onChange={upd("deskripsi")} textarea />
@@ -1002,7 +1038,7 @@ function AdminGaleri({ data, save }) {
     <div>
       <div style={{background:"#F7F6F1",borderRadius:12,padding:18,marginBottom:16}}>
         <div style={{fontWeight:500,marginBottom:12,fontSize:14}}>Tambah foto</div>
-        <Field label="URL foto" val={url} onChange={setUrl} />
+        <FotoField val={url} onChange={setUrl} folder="galeri" />
         <Field label="Keterangan" val={cap} onChange={setCap} />
         <button onClick={add} style={{background:"#185FA5",color:"#fff",border:"none",padding:"8px 18px",borderRadius:8,cursor:"pointer",fontSize:13}}>Tambah</button>
       </div>
