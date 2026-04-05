@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getData, saveData as fbSave, getPengurus } from "./firebase";
+import { getData, saveData as fbSave, getPengurus, kirimFeedback, subscribeFeedback } from "./firebase";
 
 const ADMIN_PASS = process.env.REACT_APP_ADMIN_PASSWORD;
 
@@ -23,6 +23,14 @@ const initData = {
     misi: ["Menghimpun dan mengembangkan potensi pemuda RW 02 Kalisari", "Menggerakkan partisipasi aktif pemuda dalam pembangunan sosial kemasyarakatan", "Menyelenggarakan kegiatan yang bermanfaat di bidang sosial, seni, olahraga dan pendidikan", "Membangun kerja sama antar warga dan lembaga untuk kemajuan bersama"],
     nilai: "Gotong royong, inovatif, inklusif, dan berorientasi dampak",
     lokasi: "RW 02 Kalisari, Kecamatan Pasar Rebo, Jakarta Timur",
+    filosofiLogo: [
+      { elemen: "Segi Tujuh", makna: "Melambangkan Tri Darma Karang Taruna yang terdiri dari tujuh unsur pembangunan." },
+      { elemen: "Lima Sosok Pemuda", makna: "Mewakili semangat kebersamaan dan persatuan pemuda dari berbagai latar belakang dalam satu gerakan." },
+      { elemen: "Bunga Teratai", makna: "Melambangkan kesucian, keteguhan, dan tekad pemuda untuk tumbuh di tengah tantangan." },
+      { elemen: "Warna Hijau", makna: "Melambangkan kesuburan, harapan, dan semangat muda yang terus tumbuh." },
+      { elemen: "Warna Emas / Gold", makna: "Melambangkan kemuliaan, kejayaan, dan cita-cita luhur yang ingin diraih." },
+      { elemen: "Tulisan Adhitya Karya Mahatva Yodha", makna: "Semboyan Karang Taruna yang berarti Kader Muda Pejuang Karya Agung — mencerminkan tekad menjadi generasi penerus yang berprestasi." },
+    ],
   },
   pengurus: [
     { id: 1, nama: "Ahmad Fauzi", jabatan: "Ketua", periode: "2023–2025", foto: "" },
@@ -151,7 +159,7 @@ function Beranda({ data, setPage }) {
         <div style={{maxWidth:720,margin:"0 auto",position:"relative"}}>
           <div style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(200,146,42,0.25)",border:"1px solid rgba(200,146,42,0.5)",borderRadius:20,padding:"5px 14px",fontSize:12,marginBottom:18}}>
             <span style={{width:6,height:6,borderRadius:"50%",background:"#C8922A",display:"inline-block"}} />
-            Aktif sejak {data.profil.berdiri} · {new Date().getFullYear() - parseInt(data.profil.berdiri)} tahun bergerak bersama warga
+            Aktif sejak {data.profil.berdiri} · {new Date().getFullYear() - (parseInt((data.profil.berdiri||"").match(/\d{4}/)?.[0]) || new Date().getFullYear())} tahun bergerak bersama warga
           </div>
           <h1 style={{fontSize:isMobile?22:34,fontWeight:500,margin:"0 0 10px",lineHeight:1.25}}>{data.profil.nama}</h1>
           <p style={{fontSize:16,opacity:0.85,margin:"0 0 10px",fontWeight:400}}><em>{data.profil.tagline}</em></p>
@@ -389,7 +397,7 @@ function Profil({ data }) {
       </div>
 
       {/* Nilai & Lokasi */}
-      <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:20}}>
+      <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:20,marginBottom:20}}>
         <div style={{background:"#EEEDFE",borderRadius:12,padding:20}}>
           <div style={{fontSize:11,fontWeight:500,color:"#533AB7",textTransform:"uppercase",letterSpacing:0.8,marginBottom:8}}>Nilai organisasi</div>
           <p style={{fontSize:13,color:"#3C3489",lineHeight:1.7,margin:0}}>{data.profil.nilai || "Gotong royong, inovatif, inklusif, dan berorientasi dampak"}</p>
@@ -399,6 +407,30 @@ function Profil({ data }) {
           <p style={{fontSize:13,color:"#633806",lineHeight:1.7,margin:0}}>{data.profil.lokasi || "RW 02 Kalisari, Kecamatan Pasar Rebo, Jakarta Timur"}</p>
         </div>
       </div>
+
+      {/* Filosofi Logo */}
+      {data.profil.filosofiLogo?.length > 0 && (
+        <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:24}}>
+          <div style={{display:"flex",alignItems:"center",gap:16,marginBottom:20}}>
+            <img src="/logo-kartar.png" alt="Logo" style={{width:64,height:64,objectFit:"contain",flexShrink:0}} />
+            <div>
+              <div style={{fontSize:11,fontWeight:500,color:"#C8922A",textTransform:"uppercase",letterSpacing:0.8,marginBottom:4}}>Filosofi Logo</div>
+              <p style={{fontSize:13,color:"#5F5E5A",margin:0,lineHeight:1.6}}>Setiap elemen dalam logo Karang Taruna mengandung makna dan nilai yang mencerminkan jiwa serta semangat kepemudaan.</p>
+            </div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:10}}>
+            {data.profil.filosofiLogo.map((f,i)=>(
+              <div key={i} style={{display:"flex",gap:12,alignItems:"flex-start",background:"#FAFAF8",borderRadius:8,padding:"12px 14px"}}>
+                <div style={{width:28,height:28,borderRadius:8,background:"#FBF3E2",border:"1px solid #C8922A",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"#C8922A",flexShrink:0}}>{i+1}</div>
+                <div>
+                  <div style={{fontWeight:500,fontSize:12,color:"#1a1a18",marginBottom:3}}>{f.elemen}</div>
+                  <div style={{fontSize:12,color:"#5F5E5A",lineHeight:1.6}}>{f.makna}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -483,6 +515,128 @@ function Galeri({ data }) {
 }
 
 // ── PENGURUS ──────────────────────────────────────────────────────────
+function OrgNode({ p, size=44 }) {
+  return (
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,minWidth:100,maxWidth:130}}>
+      <Avatar nama={p.nama} size={size} />
+      <div style={{textAlign:"center"}}>
+        <div style={{fontWeight:500,fontSize:12,color:"#1a1a18",lineHeight:1.3}}>{p.nama}</div>
+        <div style={{fontSize:10,color:"#185FA5",marginTop:2}}>{p.jabatan}</div>
+      </div>
+    </div>
+  );
+}
+
+function StrukturOrganisasi({ pengurus }) {
+  const isMobile = useIsMobile();
+  const cari = (kata) => pengurus.find(p => p.jabatan?.toLowerCase().includes(kata.toLowerCase()));
+  const cariSemua = (kata) => pengurus.filter(p => p.jabatan?.toLowerCase().includes(kata.toLowerCase()));
+
+  const ketua     = cari("ketua") && !cari("ketua")?.jabatan?.toLowerCase().includes("wakil") ? cari("ketua") : pengurus.find(p => /ketua/i.test(p.jabatan) && !/wakil/i.test(p.jabatan));
+  const wakil     = pengurus.find(p => /wakil/i.test(p.jabatan));
+  const sekretaris = cariSemua("sekretaris");
+  const bendahara  = cariSemua("bendahara");
+  const divisiList = [...new Set(pengurus.map(p => p.divisi).filter(d => d && d !== "Umum" && d !== "Pengurus Inti"))];
+
+  return (
+    <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:16,padding:isMobile?"20px 12px":32,marginBottom:40,overflowX:"auto"}}>
+      <div style={{fontSize:11,fontWeight:500,color:"#C8922A",textTransform:"uppercase",letterSpacing:0.8,marginBottom:24}}>Struktur Organisasi</div>
+
+      <div style={{minWidth:isMobile?500:0}}>
+        {/* Level 1 — Ketua */}
+        {ketua && (
+          <div style={{display:"flex",justifyContent:"center",marginBottom:0,position:"relative"}}>
+            <div style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
+              <div style={{background:"#E8F0FB",borderRadius:12,padding:"14px 20px",border:"1.5px solid #185FA5",display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
+                <Avatar nama={ketua.nama} size={52} />
+                <div style={{textAlign:"center"}}>
+                  <div style={{fontWeight:600,fontSize:13,color:"#1a1a18"}}>{ketua.nama}</div>
+                  <div style={{fontSize:11,color:"#185FA5",marginTop:2}}>{ketua.jabatan}</div>
+                </div>
+              </div>
+              {/* garis turun */}
+              <div style={{width:1.5,height:24,background:"#C8922A"}} />
+            </div>
+          </div>
+        )}
+
+        {/* Level 2 — Wakil Ketua */}
+        {wakil && (
+          <div style={{display:"flex",justifyContent:"center",marginBottom:0}}>
+            <div style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
+              <div style={{background:"#FBF3E2",borderRadius:12,padding:"12px 18px",border:"1.5px solid #C8922A",display:"flex",flexDirection:"column",alignItems:"center",gap:6}}>
+                <Avatar nama={wakil.nama} size={44} />
+                <div style={{textAlign:"center"}}>
+                  <div style={{fontWeight:500,fontSize:12,color:"#1a1a18"}}>{wakil.nama}</div>
+                  <div style={{fontSize:10,color:"#C8922A",marginTop:1}}>{wakil.jabatan}</div>
+                </div>
+              </div>
+              <div style={{width:1.5,height:24,background:"#C8922A"}} />
+            </div>
+          </div>
+        )}
+
+        {/* Level 3 — Sekretaris & Bendahara */}
+        {(sekretaris.length > 0 || bendahara.length > 0) && (
+          <div style={{display:"flex",justifyContent:"center",marginBottom:0}}>
+            <div style={{display:"flex",flexDirection:"column",alignItems:"center",width:"100%"}}>
+              {/* garis horizontal */}
+              <div style={{display:"flex",alignItems:"flex-start",justifyContent:"center",width:"100%",gap:0}}>
+                {[...sekretaris,...bendahara].map((p,i,arr)=>(
+                  <div key={p.id} style={{display:"flex",flexDirection:"column",alignItems:"center",flex:1,maxWidth:160}}>
+                    <div style={{width:1.5,height:i===Math.floor((arr.length-1)/2)?0:24,background:"transparent"}} />
+                    <div style={{display:"flex",alignItems:"flex-start",width:"100%"}}>
+                      {i>0 && <div style={{flex:1,height:1.5,background:"#e2e2e0",marginTop:40}} />}
+                      <div style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
+                        <div style={{width:1.5,height:24,background:"#C8922A"}} />
+                        <div style={{background:"#FAFAF8",borderRadius:10,padding:"10px 14px",border:"0.5px solid #e2e2e0",display:"flex",flexDirection:"column",alignItems:"center",gap:6,minWidth:100}}>
+                          <Avatar nama={p.nama} size={38} />
+                          <div style={{textAlign:"center"}}>
+                            <div style={{fontWeight:500,fontSize:11,color:"#1a1a18"}}>{p.nama}</div>
+                            <div style={{fontSize:10,color:"#888780",marginTop:1}}>{p.jabatan}</div>
+                          </div>
+                        </div>
+                      </div>
+                      {i<arr.length-1 && <div style={{flex:1,height:1.5,background:"#e2e2e0",marginTop:40}} />}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {divisiList.length > 0 && <div style={{width:1.5,height:24,background:"#C8922A"}} />}
+            </div>
+          </div>
+        )}
+
+        {/* Level 4 — Divisi */}
+        {divisiList.length > 0 && (
+          <div style={{display:"flex",justifyContent:"center"}}>
+            <div style={{display:"flex",alignItems:"flex-start",justifyContent:"center",gap:0,width:"100%",flexWrap:"wrap"}}>
+              {divisiList.map((divisi, i) => {
+                const koordinator = pengurus.filter(p => (p.divisi===divisi) && /koordinator|kepala|ketua divisi/i.test(p.jabatan));
+                const rep = koordinator[0] || pengurus.find(p => p.divisi===divisi);
+                if (!rep) return null;
+                return (
+                  <div key={divisi} style={{display:"flex",flexDirection:"column",alignItems:"center",flex:"0 0 auto",width:isMobile?120:140,margin:"0 4px"}}>
+                    <div style={{width:1.5,height:20,background:"#C8922A"}} />
+                    <div style={{background:"#F7F6F1",borderRadius:10,padding:"10px 12px",border:"0.5px solid #e2e2e0",width:"100%",boxSizing:"border-box",display:"flex",flexDirection:"column",alignItems:"center",gap:5}}>
+                      <Avatar nama={rep.nama} size={34} />
+                      <div style={{textAlign:"center"}}>
+                        <div style={{fontSize:10,fontWeight:600,color:"#C8922A",textTransform:"uppercase",letterSpacing:0.4,marginBottom:2}}>{divisi}</div>
+                        <div style={{fontSize:10,color:"#1a1a18",fontWeight:500,lineHeight:1.3}}>{rep.nama}</div>
+                        <div style={{fontSize:9,color:"#888780",marginTop:1}}>{rep.jabatan}</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function Pengurus({ data }) {
   const divisiList = [...new Set(data.pengurus.map(p => p.divisi || "Umum"))];
   const byDivisi = divisiList.map(d => ({
@@ -494,6 +648,7 @@ function Pengurus({ data }) {
     <div style={{maxWidth:1000,margin:"0 auto",padding:"40px 20px"}}>
       <h2 style={{fontWeight:500,margin:"0 0 6px"}}>Struktur pengurus</h2>
       <p style={{color:"#888780",marginBottom:32,fontSize:14}}>Pengurus aktif periode 2023–2025</p>
+      <StrukturOrganisasi pengurus={data.pengurus} />
       {byDivisi.map(({ divisi, anggota }) => (
         <div key={divisi} style={{marginBottom:32}}>
           <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
@@ -580,10 +735,42 @@ function Penghargaan({ data }) {
 // ── KONTAK ────────────────────────────────────────────────────────────
 function Kontak() {
   const isMobile = useIsMobile();
+  const [form, setForm] = useState({ nama: "", pesan: "", kategori: "Saran" });
+  const [status, setStatus] = useState("");
+  const [feedbacks, setFeedbacks] = useState([]);
+
+  useEffect(() => {
+    const unsub = subscribeFeedback(setFeedbacks);
+    return () => unsub();
+  }, []);
+
+  const kirim = async () => {
+    if (!form.pesan.trim()) return;
+    setStatus("Mengirim...");
+    try {
+      await kirimFeedback(form);
+      setForm({ nama: "", pesan: "", kategori: "Saran" });
+      setStatus("Terkirim! Terima kasih atas masukan Anda.");
+      setTimeout(() => setStatus(""), 3000);
+    } catch {
+      setStatus("Gagal mengirim. Coba lagi.");
+    }
+  };
+
+  const katColor = { Kritik: { bg:"#FAECE7", tc:"#993C1D", dot:"#E24B4A" }, Saran: { bg:"#E8F0FB", tc:"#0A3670", dot:"#185FA5" } };
+
+  const formatWaktu = (ts) => {
+    if (!ts) return "";
+    const d = ts.toDate ? ts.toDate() : new Date(ts);
+    return d.toLocaleDateString("id-ID", { day:"numeric", month:"short", year:"numeric" }) + " · " + d.toLocaleTimeString("id-ID", { hour:"2-digit", minute:"2-digit" });
+  };
+
   return (
-    <div style={{maxWidth:800,margin:"0 auto",padding:"40px 20px"}}>
+    <div style={{maxWidth:860,margin:"0 auto",padding:"40px 20px"}}>
       <h2 style={{fontWeight:500,margin:"0 0 6px"}}>Kontak & media sosial</h2>
       <p style={{color:"#888780",marginBottom:32,fontSize:14}}>Hubungi kami atau ikuti perkembangan terbaru</p>
+
+      {/* Info kontak */}
       <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr",gap:16,marginBottom:24}}>
         <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:20}}>
           <div style={{fontWeight:500,marginBottom:10,color:"#1a1a18"}}>Alamat</div>
@@ -597,10 +784,72 @@ function Kontak() {
           </div>
         </div>
       </div>
-      <div style={{background:"#E8F0FB",borderRadius:12,padding:24,textAlign:"center"}}>
-        <div style={{fontWeight:500,marginBottom:8,color:"#0A3670"}}>Bergabung bersama kami</div>
-        <p style={{fontSize:13,color:"#0D4A8A",margin:"0 0 16px"}}>Kami terbuka untuk pemuda-pemudi RW 02 yang ingin aktif berkontribusi.</p>
-        <a href="https://www.instagram.com/kartarr_02/" target="_blank" rel="noreferrer" style={{background:"#185FA5",color:"#fff",padding:"10px 24px",borderRadius:8,textDecoration:"none",fontSize:13,fontWeight:500}}>Hubungi via Instagram</a>
+
+      {/* Form kritik & saran */}
+      <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:24,marginBottom:24}}>
+        <div style={{fontSize:11,fontWeight:500,color:"#C8922A",textTransform:"uppercase",letterSpacing:0.8,marginBottom:16}}>Kritik & Saran</div>
+        <div style={{display:"flex",gap:8,marginBottom:14}}>
+          {["Saran","Kritik"].map(k=>(
+            <button key={k} onClick={()=>setForm({...form,kategori:k})}
+              style={{padding:"6px 18px",borderRadius:20,border:"0.5px solid",fontSize:13,cursor:"pointer",
+                background:form.kategori===k?(k==="Kritik"?"#FAECE7":"#E8F0FB"):"#fff",
+                color:form.kategori===k?(k==="Kritik"?"#993C1D":"#0A3670"):"#5F5E5A",
+                borderColor:form.kategori===k?(k==="Kritik"?"#E24B4A":"#185FA5"):"#ddd",
+                fontWeight:form.kategori===k?500:400}}>
+              {k}
+            </button>
+          ))}
+        </div>
+        <input
+          placeholder="Nama (opsional)"
+          value={form.nama}
+          onChange={e=>setForm({...form,nama:e.target.value})}
+          style={{width:"100%",boxSizing:"border-box",marginBottom:10,padding:"9px 12px",border:"0.5px solid #ddd",borderRadius:8,fontSize:13}}
+        />
+        <textarea
+          placeholder="Tulis pesan Anda..."
+          value={form.pesan}
+          onChange={e=>setForm({...form,pesan:e.target.value})}
+          rows={4}
+          style={{width:"100%",boxSizing:"border-box",marginBottom:12,padding:"9px 12px",border:"0.5px solid #ddd",borderRadius:8,fontSize:13,resize:"vertical"}}
+        />
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8}}>
+          <span style={{fontSize:12,color:status.startsWith("Gagal")?"#E24B4A":status?"#185FA5":"transparent"}}>{status||"."}</span>
+          <button onClick={kirim} disabled={!form.pesan.trim()}
+            style={{background:"#185FA5",color:"#fff",border:"none",padding:"9px 22px",borderRadius:8,cursor:"pointer",fontSize:13,fontWeight:500,opacity:form.pesan.trim()?1:0.5}}>
+            Kirim
+          </button>
+        </div>
+      </div>
+
+      {/* Daftar feedback real-time */}
+      <div>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16}}>
+          <div style={{fontSize:13,fontWeight:500,color:"#1a1a18"}}>Pesan masuk</div>
+          <span style={{background:"#E8F0FB",color:"#185FA5",fontSize:11,fontWeight:500,padding:"2px 8px",borderRadius:10}}>{feedbacks.length}</span>
+          <span style={{fontSize:11,color:"#888780",marginLeft:2}}>· diperbarui otomatis</span>
+        </div>
+        {feedbacks.length === 0 && (
+          <p style={{fontSize:13,color:"#888780",textAlign:"center",padding:"32px 0"}}>Belum ada pesan. Jadilah yang pertama!</p>
+        )}
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          {feedbacks.map(f=>{
+            const c = katColor[f.kategori] || katColor.Saran;
+            return (
+              <div key={f.id} style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:16}}>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8,flexWrap:"wrap"}}>
+                  <div style={{width:30,height:30,borderRadius:"50%",background:"#E8F0FB",color:"#185FA5",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:600,fontSize:13,flexShrink:0}}>
+                    {(f.nama||"A")[0].toUpperCase()}
+                  </div>
+                  <span style={{fontWeight:500,fontSize:13,color:"#1a1a18"}}>{f.nama||"Anonim"}</span>
+                  <span style={{background:c.bg,color:c.tc,fontSize:10,fontWeight:500,padding:"2px 8px",borderRadius:10}}>{f.kategori}</span>
+                  <span style={{fontSize:11,color:"#888780",marginLeft:"auto"}}>{formatWaktu(f.timestamp)}</span>
+                </div>
+                <p style={{margin:0,fontSize:13,color:"#5F5E5A",lineHeight:1.7}}>{f.pesan}</p>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -742,9 +991,13 @@ function AdminPanel({ data, setData, onLogout }) {
 
 function AdminProfil({ data, save }) {
   const [p, setP] = useState({...data.profil, misi: Array.isArray(data.profil.misi) ? data.profil.misi.join("\n") : (data.profil.misi || "")});
+  const [filosofi, setFilosofi] = useState(data.profil.filosofiLogo || []);
   const upd = k => v => setP({...p,[k]:v});
+  const updFilosofi = (i, k, v) => { const nl = filosofi.map((f,j)=>j===i?{...f,[k]:v}:f); setFilosofi(nl); };
+  const addFilosofi = () => setFilosofi([...filosofi, { elemen:"", makna:"" }]);
+  const delFilosofi = (i) => setFilosofi(filosofi.filter((_,j)=>j!==i));
   const handleSave = () => {
-    const profil = {...p, misi: p.misi.split("\n").map(m=>m.trim()).filter(Boolean)};
+    const profil = {...p, misi: p.misi.split("\n").map(m=>m.trim()).filter(Boolean), filosofiLogo: filosofi.filter(f=>f.elemen||f.makna)};
     save({...data, profil});
   };
   return (
@@ -756,12 +1009,30 @@ function AdminProfil({ data, save }) {
       <Field label="Misi (satu per baris)" val={p.misi} onChange={upd("misi")} textarea />
       <Field label="Nilai organisasi" val={p.nilai||""} onChange={upd("nilai")} />
       <Field label="Lokasi" val={p.lokasi||""} onChange={upd("lokasi")} />
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
         <Field label="Tahun berdiri" val={p.berdiri} onChange={upd("berdiri")} />
         <Field label="Jumlah anggota" val={p.anggota} onChange={upd("anggota")} />
         <Field label="Total kegiatan" val={p.kegiatan} onChange={upd("kegiatan")} />
         <Field label="Penghargaan" val={p.penghargaan} onChange={upd("penghargaan")} />
       </div>
+
+      {/* Filosofi Logo */}
+      <div style={{borderTop:"0.5px solid #e8e8e5",paddingTop:16,marginBottom:16}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+          <label style={{fontSize:12,color:"#888780",fontWeight:500}}>Filosofi Logo</label>
+          <button onClick={addFilosofi} style={{background:"#FBF3E2",color:"#C8922A",border:"0.5px solid #C8922A",padding:"4px 12px",borderRadius:6,cursor:"pointer",fontSize:12}}>+ Tambah</button>
+        </div>
+        {filosofi.map((f,i)=>(
+          <div key={i} style={{background:"#FAFAF8",borderRadius:8,padding:12,marginBottom:8,display:"flex",gap:10,alignItems:"flex-start"}}>
+            <div style={{flex:1,display:"flex",flexDirection:"column",gap:6}}>
+              <input placeholder="Elemen (contoh: Segi Tujuh)" value={f.elemen} onChange={e=>updFilosofi(i,"elemen",e.target.value)} style={{width:"100%",boxSizing:"border-box",padding:"6px 10px",border:"0.5px solid #ddd",borderRadius:6,fontSize:12}} />
+              <textarea placeholder="Makna / penjelasan" value={f.makna} onChange={e=>updFilosofi(i,"makna",e.target.value)} rows={2} style={{width:"100%",boxSizing:"border-box",padding:"6px 10px",border:"0.5px solid #ddd",borderRadius:6,fontSize:12,resize:"vertical"}} />
+            </div>
+            <button onClick={()=>delFilosofi(i)} style={{background:"#FAECE7",color:"#993C1D",border:"none",padding:"4px 8px",borderRadius:6,cursor:"pointer",fontSize:12,flexShrink:0}}>✕</button>
+          </div>
+        ))}
+      </div>
+
       <button onClick={handleSave} style={{background:"#185FA5",color:"#fff",border:"none",padding:"10px 24px",borderRadius:8,cursor:"pointer",fontWeight:500}}>Simpan profil</button>
     </div>
   );

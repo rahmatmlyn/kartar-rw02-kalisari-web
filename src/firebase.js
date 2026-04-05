@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc, setDoc, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -25,6 +25,25 @@ export async function getData() {
 export async function saveData(data) {
   const ref = doc(db, "website", "data");
   await setDoc(ref, data);
+}
+
+// Helper: kirim kritik/saran
+export async function kirimFeedback({ nama, pesan, kategori }) {
+  await addDoc(collection(db, "feedback"), {
+    nama: nama || "Anonim",
+    pesan,
+    kategori,
+    timestamp: serverTimestamp(),
+  });
+}
+
+// Helper: subscribe real-time feedback (returns unsubscribe fn)
+export function subscribeFeedback(callback) {
+  const q = query(collection(db, "feedback"), orderBy("timestamp", "desc"));
+  return onSnapshot(q, snap => {
+    const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    callback(data);
+  });
 }
 
 // Helper: ambil data pengurus dari Google Sheets (CSV)
