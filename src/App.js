@@ -118,7 +118,7 @@ function Beranda({ data, setPage }) {
           </div>
           <h1 style={{fontSize:34,fontWeight:500,margin:"0 0 10px",lineHeight:1.25}}>{data.profil.nama}</h1>
           <p style={{fontSize:16,opacity:0.85,margin:"0 0 10px",fontWeight:400}}><em>{data.profil.tagline}</em></p>
-          <p style={{fontSize:14,opacity:0.75,margin:"0 0 30px",lineHeight:1.7,maxWidth:560,marginLeft:"auto",marginRight:"auto"}}>{data.profil.deskripsi}</p>
+          <p style={{fontSize:14,opacity:0.75,margin:"0 0 30px",lineHeight:1.7,maxWidth:560,marginLeft:"auto",marginRight:"auto"}}>Karang Taruna RW 02 Kalisari adalah organisasi kepemudaan yang berdiri sejak 2019 dan telah aktif bergerak selama 5 tahun dalam bidang sosial, seni budaya, olahraga, dan pemberdayaan masyarakat. Kami berkomitmen untuk menjadi wadah kreativitas dan kepedulian pemuda demi lingkungan RW 02 yang lebih maju dan harmonis.</p>
           <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap",marginBottom:40}}>
             <button onClick={()=>setPage("Kegiatan")} style={{background:"#fff",color:"#0F6E56",border:"none",padding:"10px 22px",borderRadius:8,cursor:"pointer",fontWeight:500,fontSize:14}}>Lihat Kegiatan</button>
             <button onClick={()=>setPage("Profil")} style={{background:"transparent",color:"#fff",border:"1.5px solid rgba(255,255,255,0.5)",padding:"10px 22px",borderRadius:8,cursor:"pointer",fontSize:14}}>Tentang Kami</button>
