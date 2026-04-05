@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getData, saveData as fbSave, getPengurus, kirimFeedback, subscribeFeedback } from "./firebase";
+import { getData, saveData as fbSave, getPengurus, kirimFeedback, subscribeFeedback, hapusFeedback } from "./firebase";
 
 const ADMIN_PASS = process.env.REACT_APP_ADMIN_PASSWORD;
 
@@ -723,11 +723,12 @@ function Penghargaan({ data }) {
 }
 
 // ── KONTAK ────────────────────────────────────────────────────────────
-function Kontak() {
+function Kontak({ isAdmin }) {
   const isMobile = useIsMobile();
   const [form, setForm] = useState({ nama: "", pesan: "", kategori: "Saran" });
   const [status, setStatus] = useState("");
   const [feedbacks, setFeedbacks] = useState([]);
+  const [konfirmHapus, setKonfirmHapus] = useState(null);
 
   useEffect(() => {
     const unsub = subscribeFeedback(setFeedbacks);
@@ -747,6 +748,7 @@ function Kontak() {
     }
   };
 
+  const hapus = async (id) => { await hapusFeedback(id); setKonfirmHapus(null); };
   const katColor = { Kritik: { bg:"#FAECE7", tc:"#993C1D", dot:"#E24B4A" }, Saran: { bg:"#E8F0FB", tc:"#0A3670", dot:"#185FA5" } };
 
   const formatWaktu = (ts) => {
@@ -826,7 +828,7 @@ function Kontak() {
           {feedbacks.map(f=>{
             const c = katColor[f.kategori] || katColor.Saran;
             return (
-              <div key={f.id} style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:16}}>
+              <div key={f.id} style={{background:"#fff",border:konfirmHapus===f.id?"1px solid #E24B4A":"0.5px solid #e2e2e0",borderRadius:12,padding:16}}>
                 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8,flexWrap:"wrap"}}>
                   <div style={{width:30,height:30,borderRadius:"50%",background:"#E8F0FB",color:"#185FA5",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:600,fontSize:13,flexShrink:0}}>
                     {(f.nama||"A")[0].toUpperCase()}
@@ -834,8 +836,20 @@ function Kontak() {
                   <span style={{fontWeight:500,fontSize:13,color:"#1a1a18"}}>{f.nama||"Anonim"}</span>
                   <span style={{background:c.bg,color:c.tc,fontSize:10,fontWeight:500,padding:"2px 8px",borderRadius:10}}>{f.kategori}</span>
                   <span style={{fontSize:11,color:"#888780",marginLeft:"auto"}}>{formatWaktu(f.timestamp)}</span>
+                  {isAdmin && konfirmHapus !== f.id && (
+                    <button onClick={()=>setKonfirmHapus(f.id)} style={{background:"#FAECE7",color:"#993C1D",border:"none",padding:"3px 10px",borderRadius:6,cursor:"pointer",fontSize:11,marginLeft:4}}>Hapus</button>
+                  )}
                 </div>
                 <p style={{margin:0,fontSize:13,color:"#5F5E5A",lineHeight:1.7}}>{f.pesan}</p>
+                {isAdmin && konfirmHapus===f.id && (
+                  <div style={{marginTop:10,padding:"10px 12px",background:"#FAECE7",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,flexWrap:"wrap"}}>
+                    <span style={{fontSize:12,color:"#993C1D",fontWeight:500}}>Yakin hapus pesan ini?</span>
+                    <div style={{display:"flex",gap:6}}>
+                      <button onClick={()=>setKonfirmHapus(null)} style={{background:"#fff",color:"#5F5E5A",border:"0.5px solid #ddd",padding:"4px 12px",borderRadius:6,cursor:"pointer",fontSize:12}}>Batal</button>
+                      <button onClick={()=>hapus(f.id)} style={{background:"#E24B4A",color:"#fff",border:"none",padding:"4px 12px",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:500}}>Hapus</button>
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -1231,7 +1245,7 @@ export default function App() {
       {page==="Galeri" && <Galeri data={data} />}
       {page==="Pengurus" && <Pengurus data={data} />}
       {page==="Penghargaan" && <Penghargaan data={data} />}
-      {page==="Kontak" && <Kontak />}
+      {page==="Kontak" && <Kontak isAdmin={isAdmin} />}
       <Footer setPage={setPage} />
     </div>
   );

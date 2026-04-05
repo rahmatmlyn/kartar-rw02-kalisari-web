@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore, doc, getDoc, setDoc, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -35,6 +35,11 @@ export async function kirimFeedback({ nama, pesan, kategori }) {
     kategori,
     timestamp: serverTimestamp(),
   });
+}
+
+// Helper: hapus feedback
+export async function hapusFeedback(id) {
+  await deleteDoc(doc(db, "feedback", id));
 }
 
 // Helper: subscribe real-time feedback (returns unsubscribe fn)
