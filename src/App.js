@@ -61,6 +61,11 @@ const initData = {
     { id: 2, judul: "Juara 1 Lomba Kebersihan Lingkungan", penyelenggara: "Kecamatan Pasar Rebo", tahun: "2022", deskripsi: "Penghargaan atas program kerja bakti dan penghijauan lingkungan RW 02.", tingkat: "Kecamatan" },
     { id: 3, judul: "Penghargaan Program Kepemudaan Inovatif", penyelenggara: "Suku Dinas Pemuda & Olahraga Jakarta Timur", tahun: "2022", deskripsi: "Diraih atas program pelatihan digital marketing untuk pemuda yang berdampak luas.", tingkat: "Kota" },
   ],
+  kolaborasi: [
+    { id: 1, nama: "Kelurahan Kalisari", logo: "", status: "aktif" },
+    { id: 2, nama: "Kecamatan Pasar Rebo", logo: "", status: "aktif" },
+    { id: 3, nama: "Karang Taruna Jakarta Timur", logo: "", status: "aktif" },
+  ],
   funfacts: [
     { id: 1, emoji: "🎉", angka: "50+", label: "Kegiatan digelar sejak berdiri" },
     { id: 2, emoji: "👥", angka: "85+", label: "Anggota aktif saat ini" },
@@ -324,6 +329,59 @@ function Beranda({ data, setPage }) {
           ))}
         </div>
       </div>
+
+      {/* ── KOLABORASI ── */}
+      {data.kolaborasi?.length > 0 && (
+        <div style={{padding:"48px 20px",background:"#fff"}}>
+          <div style={{maxWidth:1100,margin:"0 auto"}}>
+            <div style={{textAlign:"center",marginBottom:32}}>
+              <div style={{fontSize:11,color:"#185FA5",fontWeight:500,letterSpacing:1,textTransform:"uppercase",marginBottom:6}}>Bersama lebih kuat</div>
+              <h2 style={{fontSize:20,fontWeight:500,margin:"0 0 6px",color:"#1a1a18"}}>Kolaborasi Kami</h2>
+              <p style={{fontSize:13,color:"#888780",margin:0}}>Mitra dan lembaga yang berjalan bersama Karang Taruna RW 02</p>
+            </div>
+            {/* Aktif */}
+            {data.kolaborasi.some(k=>k.status==="aktif") && (
+              <div style={{marginBottom:32}}>
+                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+                  <span style={{background:"#E1F5EE",color:"#0F6E56",fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:20,letterSpacing:0.5}}>● Kolaborasi Aktif</span>
+                  <div style={{flex:1,height:1,background:"#e2e2e0"}} />
+                </div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:12}}>
+                  {data.kolaborasi.filter(k=>k.status==="aktif").map(k=>(
+                    <div key={k.id} style={{background:"#fff",border:"1.5px solid #0F6E56",borderRadius:12,padding:"14px 20px",display:"flex",alignItems:"center",gap:12,minWidth:180}}>
+                      {k.logo
+                        ? <img src={k.logo} alt={k.nama} style={{width:40,height:40,objectFit:"contain",borderRadius:6,flexShrink:0}} />
+                        : <div style={{width:40,height:40,borderRadius:6,background:"#E1F5EE",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>🤝</div>
+                      }
+                      <div style={{fontSize:13,fontWeight:500,color:"#1a1a18",lineHeight:1.4}}>{k.nama}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {/* Selesai */}
+            {data.kolaborasi.some(k=>k.status==="selesai") && (
+              <div>
+                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+                  <span style={{background:"#F1EFE8",color:"#888780",fontSize:11,fontWeight:600,padding:"3px 10px",borderRadius:20,letterSpacing:0.5}}>● Kolaborasi Selesai</span>
+                  <div style={{flex:1,height:1,background:"#e2e2e0"}} />
+                </div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:12}}>
+                  {data.kolaborasi.filter(k=>k.status==="selesai").map(k=>(
+                    <div key={k.id} style={{background:"#F7F6F1",border:"0.5px solid #e2e2e0",borderRadius:12,padding:"14px 20px",display:"flex",alignItems:"center",gap:12,minWidth:180,opacity:0.75}}>
+                      {k.logo
+                        ? <img src={k.logo} alt={k.nama} style={{width:40,height:40,objectFit:"contain",borderRadius:6,flexShrink:0,filter:"grayscale(1)"}} />
+                        : <div style={{width:40,height:40,borderRadius:6,background:"#e2e2e0",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>🤝</div>
+                      }
+                      <div style={{fontSize:13,fontWeight:500,color:"#888780",lineHeight:1.4}}>{k.nama}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── FUN FACTS ── */}
       {data.funfacts?.length > 0 && (
@@ -964,7 +1022,7 @@ function AdminPanel({ data, setData, onLogout }) {
       </div>
       {msg && <div style={{background:msg.startsWith("Gagal")?"#FAECE7":"#E8F0FB",color:msg.startsWith("Gagal")?"#993C1D":"#0A3670",padding:"10px 16px",borderRadius:8,marginBottom:16,fontSize:13}}>{msg}</div>}
       <div style={{display:"flex",gap:6,marginBottom:24,borderBottom:"0.5px solid #e8e8e5",paddingBottom:12,flexWrap:"wrap"}}>
-        {[["profil","Profil"],["kegiatan","Kegiatan"],["galeri","Galeri"],["pengurus","Pengurus"],["penghargaan","Penghargaan"],["funfact","Fun Fact"],["feedback","Kritik & Saran"]].map(([k,l])=>(
+        {[["profil","Profil"],["kegiatan","Kegiatan"],["galeri","Galeri"],["pengurus","Pengurus"],["penghargaan","Penghargaan"],["kolaborasi","Kolaborasi"],["funfact","Fun Fact"],["feedback","Kritik & Saran"]].map(([k,l])=>(
           <button key={k} onClick={()=>setTab(k)} style={{background:tab===k?"#E8F0FB":"transparent",color:tab===k?"#0A3670":"#5F5E5A",border:"none",padding:"7px 16px",borderRadius:6,cursor:"pointer",fontSize:13,fontWeight:tab===k?500:400}}>{l}</button>
         ))}
       </div>
@@ -973,6 +1031,7 @@ function AdminPanel({ data, setData, onLogout }) {
       {tab==="galeri" && <AdminGaleri data={data} save={save} />}
       {tab==="pengurus" && <AdminPengurus data={data} save={save} />}
       {tab==="penghargaan" && <AdminPenghargaan data={data} save={save} />}
+      {tab==="kolaborasi" && <AdminKolaborasi data={data} save={save} />}
       {tab==="funfact" && <AdminFunFact data={data} save={save} />}
       {tab==="feedback" && <AdminFeedback />}
     </div>
@@ -1191,6 +1250,110 @@ function AdminPengurus({ data, save }) {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function AdminKolaborasi({ data, save }) {
+  const emptyForm = { nama:"", logo:"", status:"aktif" };
+  const [list, setList] = useState(data.kolaborasi || []);
+  const [form, setForm] = useState(emptyForm);
+  const [editId, setEditId] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const upd = k => v => setForm(f => ({...f,[k]:v}));
+
+  const openNew = () => { setEditId("new"); setForm(emptyForm); };
+  const openEdit = item => { setEditId(item.id); setForm({nama:item.nama,logo:item.logo||"",status:item.status}); };
+
+  const saveItem = () => {
+    const nl = editId==="new"
+      ? [...list, {...form, id:Date.now()}]
+      : list.map(k => k.id===editId ? {...form, id:editId} : k);
+    setList(nl); save({...data, kolaborasi:nl}); setEditId(null);
+  };
+  const del = id => { const nl=list.filter(k=>k.id!==id); setList(nl); save({...data,kolaborasi:nl}); };
+
+  const handleUpload = async e => {
+    const file = e.target.files[0]; if (!file) return;
+    setUploading(true);
+    try { const url = await uploadFoto(file,"kolaborasi"); upd("logo")(url); setForm(f=>({...f,logo:url})); }
+    catch(err) { alert("Upload gagal: "+err.message); }
+    finally { setUploading(false); e.target.value=""; }
+  };
+
+  const aktif = list.filter(k=>k.status==="aktif");
+  const selesai = list.filter(k=>k.status==="selesai");
+
+  return (
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+        <span style={{fontSize:14,color:"#888780"}}>{aktif.length} aktif · {selesai.length} selesai</span>
+        <button onClick={openNew} style={{background:"#185FA5",color:"#fff",border:"none",padding:"7px 14px",borderRadius:8,cursor:"pointer",fontSize:13}}>+ Tambah</button>
+      </div>
+
+      {editId && (
+        <div style={{background:"#F7F6F1",borderRadius:12,padding:18,marginBottom:16}}>
+          <div style={{fontWeight:500,marginBottom:14,fontSize:14}}>{editId==="new"?"Tambah Kolaborasi":"Edit Kolaborasi"}</div>
+          <Field label="Nama Mitra / Lembaga" val={form.nama} onChange={upd("nama")} />
+
+          {/* Logo upload */}
+          <div style={{marginBottom:12}}>
+            <label style={{fontSize:12,color:"#888780",display:"block",marginBottom:6}}>Logo</label>
+            <div style={{display:"flex",gap:8,alignItems:"center"}}>
+              <input value={form.logo} onChange={e=>upd("logo")(e.target.value)} placeholder="Paste URL logo..."
+                style={{flex:1,padding:"6px 8px",border:"1px solid #ddd",borderRadius:4,fontSize:13,boxSizing:"border-box"}} />
+              <label style={{display:"inline-flex",alignItems:"center",gap:5,cursor:uploading?"default":"pointer",background:uploading?"#aaa":"#185FA5",color:"#fff",padding:"6px 12px",borderRadius:6,fontSize:12,whiteSpace:"nowrap",flexShrink:0}}>
+                {uploading?"Mengupload…":"📁 Upload"}
+                <input type="file" accept="image/*" onChange={handleUpload} disabled={uploading} style={{display:"none"}} />
+              </label>
+            </div>
+            {form.logo && <img src={form.logo} alt="" style={{marginTop:8,height:56,objectFit:"contain",borderRadius:6,border:"0.5px solid #e2e2e0",background:"#f7f6f1",padding:4}} />}
+          </div>
+
+          {/* Status */}
+          <div style={{marginBottom:14}}>
+            <label style={{fontSize:12,color:"#888780",display:"block",marginBottom:6}}>Status</label>
+            <div style={{display:"flex",gap:8}}>
+              {["aktif","selesai"].map(s=>(
+                <button key={s} onClick={()=>upd("status")(s)} style={{padding:"6px 16px",borderRadius:20,border:`1.5px solid ${form.status===s?"#0F6E56":"#ddd"}`,background:form.status===s?"#E1F5EE":"#fff",color:form.status===s?"#0F6E56":"#888780",fontSize:12,cursor:"pointer",fontWeight:form.status===s?600:400,textTransform:"capitalize"}}>
+                  {s==="aktif"?"● Aktif":"● Selesai"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={saveItem} style={{background:"#185FA5",color:"#fff",border:"none",padding:"8px 18px",borderRadius:8,cursor:"pointer",fontSize:13}}>Simpan</button>
+            <button onClick={()=>setEditId(null)} style={{background:"transparent",border:"0.5px solid #ddd",padding:"8px 18px",borderRadius:8,cursor:"pointer",fontSize:13}}>Batal</button>
+          </div>
+        </div>
+      )}
+
+      {/* List */}
+      {["aktif","selesai"].map(status => {
+        const filtered = list.filter(k=>k.status===status);
+        if (!filtered.length) return null;
+        return (
+          <div key={status} style={{marginBottom:20}}>
+            <div style={{fontSize:12,fontWeight:600,color:status==="aktif"?"#0F6E56":"#888780",marginBottom:8,textTransform:"uppercase",letterSpacing:0.5}}>
+              {status==="aktif"?"● Kolaborasi Aktif":"● Kolaborasi Selesai"}
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              {filtered.map(k=>(
+                <div key={k.id} style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:10,padding:"10px 14px",display:"flex",alignItems:"center",gap:12}}>
+                  {k.logo
+                    ? <img src={k.logo} alt={k.nama} style={{width:40,height:40,objectFit:"contain",borderRadius:6,border:"0.5px solid #e2e2e0",flexShrink:0}} />
+                    : <div style={{width:40,height:40,borderRadius:6,background:"#F1EFE8",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>🤝</div>
+                  }
+                  <div style={{flex:1,fontWeight:500,fontSize:13,color:"#1a1a18"}}>{k.nama}</div>
+                  <button onClick={()=>openEdit(k)} style={{background:"transparent",border:"0.5px solid #ddd",padding:"4px 10px",borderRadius:6,cursor:"pointer",fontSize:12}}>Edit</button>
+                  <button onClick={()=>del(k.id)} style={{background:"transparent",border:"0.5px solid #F09595",color:"#E24B4A",padding:"4px 10px",borderRadius:6,cursor:"pointer",fontSize:12}}>Hapus</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
