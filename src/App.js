@@ -61,6 +61,10 @@ const initData = {
     { id: 2, judul: "Juara 1 Lomba Kebersihan Lingkungan", penyelenggara: "Kecamatan Pasar Rebo", tahun: "2022", deskripsi: "Penghargaan atas program kerja bakti dan penghijauan lingkungan RW 02.", tingkat: "Kecamatan" },
     { id: 3, judul: "Penghargaan Program Kepemudaan Inovatif", penyelenggara: "Suku Dinas Pemuda & Olahraga Jakarta Timur", tahun: "2022", deskripsi: "Diraih atas program pelatihan digital marketing untuk pemuda yang berdampak luas.", tingkat: "Kota" },
   ],
+  usahaEkonomi: [
+    { id: 1, nama: "HT (Handy Talkie)", kategori: "sewa", harga: "50000", satuan: "hari", deskripsi: "Sewa HT untuk kegiatan, tersedia beberapa unit.", foto: "", stok: "5 unit", tersedia: true },
+    { id: 2, nama: "Kaos Karang Taruna", kategori: "jual", harga: "75000", satuan: "pcs", deskripsi: "Kaos resmi Karang Taruna RW 02 Kalisari.", foto: "", stok: "", tersedia: true },
+  ],
   kolaborasi: [
     { id: 1, nama: "Kelurahan Kalisari", logo: "", status: "aktif" },
     { id: 2, nama: "Kecamatan Pasar Rebo", logo: "", status: "aktif" },
@@ -374,6 +378,85 @@ function Beranda({ data, setPage }) {
                         : <div style={{width:40,height:40,borderRadius:6,background:"#e2e2e0",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>🤝</div>
                       }
                       <div style={{fontSize:13,fontWeight:500,color:"#888780",lineHeight:1.4}}>{k.nama}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── USAHA EKONOMI PRODUKTIF ── */}
+      {data.usahaEkonomi?.length > 0 && (
+        <div style={{padding:"48px 20px",background:"#F7F6F1"}}>
+          <div style={{maxWidth:1100,margin:"0 auto"}}>
+            <div style={{textAlign:"center",marginBottom:32}}>
+              <div style={{fontSize:11,color:"#C8922A",fontWeight:600,letterSpacing:1.2,textTransform:"uppercase",marginBottom:6}}>Mandiri & Produktif</div>
+              <h2 style={{fontSize:20,fontWeight:500,margin:"0 0 6px",color:"#1a1a18"}}>Usaha Ekonomi Produktif</h2>
+              <p style={{fontSize:13,color:"#888780",margin:0}}>Produk dan layanan dari Karang Taruna RW 02 untuk mendukung kemandirian organisasi</p>
+            </div>
+            {/* Sewa */}
+            {data.usahaEkonomi.some(u=>u.kategori==="sewa") && (
+              <div style={{marginBottom:28}}>
+                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+                  <span style={{background:"#E8F0FB",color:"#185FA5",fontSize:11,fontWeight:600,padding:"3px 12px",borderRadius:20}}>🔑 Penyewaan</span>
+                  <div style={{flex:1,height:1,background:"#e2e2e0"}} />
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:14}}>
+                  {data.usahaEkonomi.filter(u=>u.kategori==="sewa").map(u=>(
+                    <div key={u.id} style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,overflow:"hidden",opacity:u.tersedia?1:0.6}}>
+                      {u.foto
+                        ? <img src={u.foto} alt={u.nama} style={{width:"100%",height:140,objectFit:"cover",display:"block"}} />
+                        : <div style={{width:"100%",height:140,background:"#E8F0FB",display:"flex",alignItems:"center",justifyContent:"center",fontSize:40}}>📻</div>
+                      }
+                      <div style={{padding:"14px 16px"}}>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
+                          <div style={{fontWeight:600,fontSize:14,color:"#1a1a18"}}>{u.nama}</div>
+                          {!u.tersedia && <span style={{background:"#FAECE7",color:"#993C1D",fontSize:10,fontWeight:600,padding:"2px 8px",borderRadius:10,flexShrink:0}}>Tidak tersedia</span>}
+                        </div>
+                        {u.deskripsi && <p style={{fontSize:12,color:"#5F5E5A",margin:"0 0 10px",lineHeight:1.5}}>{u.deskripsi}</p>}
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                          <div>
+                            <span style={{fontSize:16,fontWeight:700,color:"#185FA5"}}>Rp {parseInt(u.harga||0).toLocaleString("id-ID")}</span>
+                            <span style={{fontSize:11,color:"#888780"}}>/{u.satuan}</span>
+                          </div>
+                          {u.stok && <span style={{fontSize:11,color:"#888780"}}>Stok: {u.stok}</span>}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {/* Jual */}
+            {data.usahaEkonomi.some(u=>u.kategori==="jual") && (
+              <div>
+                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+                  <span style={{background:"#FBF3E2",color:"#C8922A",fontSize:11,fontWeight:600,padding:"3px 12px",borderRadius:20}}>🛍️ Penjualan</span>
+                  <div style={{flex:1,height:1,background:"#e2e2e0"}} />
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:14}}>
+                  {data.usahaEkonomi.filter(u=>u.kategori==="jual").map(u=>(
+                    <div key={u.id} style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,overflow:"hidden",opacity:u.tersedia?1:0.6}}>
+                      {u.foto
+                        ? <img src={u.foto} alt={u.nama} style={{width:"100%",height:140,objectFit:"cover",display:"block"}} />
+                        : <div style={{width:"100%",height:140,background:"#FBF3E2",display:"flex",alignItems:"center",justifyContent:"center",fontSize:40}}>🛍️</div>
+                      }
+                      <div style={{padding:"14px 16px"}}>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
+                          <div style={{fontWeight:600,fontSize:14,color:"#1a1a18"}}>{u.nama}</div>
+                          {!u.tersedia && <span style={{background:"#FAECE7",color:"#993C1D",fontSize:10,fontWeight:600,padding:"2px 8px",borderRadius:10,flexShrink:0}}>Habis</span>}
+                        </div>
+                        {u.deskripsi && <p style={{fontSize:12,color:"#5F5E5A",margin:"0 0 10px",lineHeight:1.5}}>{u.deskripsi}</p>}
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                          <div>
+                            <span style={{fontSize:16,fontWeight:700,color:"#C8922A"}}>Rp {parseInt(u.harga||0).toLocaleString("id-ID")}</span>
+                            <span style={{fontSize:11,color:"#888780"}}>/{u.satuan}</span>
+                          </div>
+                          {u.stok && <span style={{fontSize:11,color:"#888780"}}>Stok: {u.stok}</span>}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1022,7 +1105,7 @@ function AdminPanel({ data, setData, onLogout }) {
       </div>
       {msg && <div style={{background:msg.startsWith("Gagal")?"#FAECE7":"#E8F0FB",color:msg.startsWith("Gagal")?"#993C1D":"#0A3670",padding:"10px 16px",borderRadius:8,marginBottom:16,fontSize:13}}>{msg}</div>}
       <div style={{display:"flex",gap:6,marginBottom:24,borderBottom:"0.5px solid #e8e8e5",paddingBottom:12,flexWrap:"wrap"}}>
-        {[["profil","Profil"],["kegiatan","Kegiatan"],["galeri","Galeri"],["pengurus","Pengurus"],["penghargaan","Penghargaan"],["kolaborasi","Kolaborasi"],["funfact","Fun Fact"],["feedback","Kritik & Saran"]].map(([k,l])=>(
+        {[["profil","Profil"],["kegiatan","Kegiatan"],["galeri","Galeri"],["pengurus","Pengurus"],["penghargaan","Penghargaan"],["usaha","Usaha Ekonomi"],["kolaborasi","Kolaborasi"],["funfact","Fun Fact"],["feedback","Kritik & Saran"]].map(([k,l])=>(
           <button key={k} onClick={()=>setTab(k)} style={{background:tab===k?"#E8F0FB":"transparent",color:tab===k?"#0A3670":"#5F5E5A",border:"none",padding:"7px 16px",borderRadius:6,cursor:"pointer",fontSize:13,fontWeight:tab===k?500:400}}>{l}</button>
         ))}
       </div>
@@ -1031,6 +1114,7 @@ function AdminPanel({ data, setData, onLogout }) {
       {tab==="galeri" && <AdminGaleri data={data} save={save} />}
       {tab==="pengurus" && <AdminPengurus data={data} save={save} />}
       {tab==="penghargaan" && <AdminPenghargaan data={data} save={save} />}
+      {tab==="usaha" && <AdminUsahaEkonomi data={data} save={save} />}
       {tab==="kolaborasi" && <AdminKolaborasi data={data} save={save} />}
       {tab==="funfact" && <AdminFunFact data={data} save={save} />}
       {tab==="feedback" && <AdminFeedback />}
@@ -1250,6 +1334,133 @@ function AdminPengurus({ data, save }) {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function AdminUsahaEkonomi({ data, save }) {
+  const emptyForm = { nama:"", kategori:"sewa", harga:"", satuan:"hari", deskripsi:"", foto:"", stok:"", tersedia:true };
+  const [list, setList] = useState(data.usahaEkonomi || []);
+  const [editId, setEditId] = useState(null);
+  const [form, setForm] = useState(emptyForm);
+  const [uploading, setUploading] = useState(false);
+  const upd = k => v => setForm(f => ({...f,[k]:v}));
+
+  const openNew = () => { setEditId("new"); setForm(emptyForm); };
+  const openEdit = item => { setEditId(item.id); setForm({...item}); };
+  const saveItem = () => {
+    const nl = editId==="new"
+      ? [...list, {...form, id:Date.now()}]
+      : list.map(u => u.id===editId ? {...form, id:editId} : u);
+    setList(nl); save({...data, usahaEkonomi:nl}); setEditId(null);
+  };
+  const del = id => { const nl=list.filter(u=>u.id!==id); setList(nl); save({...data,usahaEkonomi:nl}); };
+
+  const handleUpload = async e => {
+    const file = e.target.files[0]; if(!file) return;
+    setUploading(true);
+    try { const url = await uploadFoto(file,"usaha"); setForm(f=>({...f,foto:url})); }
+    catch(err) { alert("Upload gagal: "+err.message); }
+    finally { setUploading(false); e.target.value=""; }
+  };
+
+  const sewa = list.filter(u=>u.kategori==="sewa");
+  const jual = list.filter(u=>u.kategori==="jual");
+
+  return (
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+        <span style={{fontSize:14,color:"#888780"}}>{sewa.length} sewa · {jual.length} produk jual</span>
+        <button onClick={openNew} style={{background:"#185FA5",color:"#fff",border:"none",padding:"7px 14px",borderRadius:8,cursor:"pointer",fontSize:13}}>+ Tambah</button>
+      </div>
+
+      {editId && (
+        <div style={{background:"#F7F6F1",borderRadius:12,padding:18,marginBottom:16}}>
+          <div style={{fontWeight:500,marginBottom:14,fontSize:14}}>{editId==="new"?"Tambah Item":"Edit Item"}</div>
+
+          {/* Kategori */}
+          <div style={{marginBottom:12}}>
+            <label style={{fontSize:12,color:"#888780",display:"block",marginBottom:6}}>Kategori</label>
+            <div style={{display:"flex",gap:8}}>
+              {[["sewa","🔑 Penyewaan"],["jual","🛍️ Penjualan"]].map(([val,lbl])=>(
+                <button key={val} onClick={()=>{ upd("kategori")(val); upd("satuan")(val==="sewa"?"hari":"pcs"); }}
+                  style={{padding:"6px 16px",borderRadius:20,border:`1.5px solid ${form.kategori===val?"#185FA5":"#ddd"}`,background:form.kategori===val?"#E8F0FB":"#fff",color:form.kategori===val?"#185FA5":"#888780",fontSize:12,cursor:"pointer",fontWeight:form.kategori===val?600:400}}>
+                  {lbl}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+            <Field label="Nama Produk / Barang" val={form.nama} onChange={upd("nama")} />
+            <div style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:8}}>
+              <Field label="Harga (Rp)" val={form.harga} onChange={upd("harga")} type="number" />
+              <Field label="Per" val={form.satuan} onChange={upd("satuan")} />
+            </div>
+            <Field label="Stok / Jumlah unit" val={form.stok} onChange={upd("stok")} />
+            <div style={{marginBottom:12}}>
+              <label style={{fontSize:12,color:"#888780",display:"block",marginBottom:6}}>Status</label>
+              <div style={{display:"flex",gap:8}}>
+                {[[true,"✅ Tersedia"],[false,"❌ Tidak tersedia"]].map(([val,lbl])=>(
+                  <button key={String(val)} onClick={()=>upd("tersedia")(val)}
+                    style={{padding:"5px 12px",borderRadius:20,border:`1.5px solid ${form.tersedia===val?"#0F6E56":"#ddd"}`,background:form.tersedia===val?"#E1F5EE":"#fff",color:form.tersedia===val?"#0F6E56":"#888780",fontSize:11,cursor:"pointer"}}>
+                    {lbl}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <Field label="Deskripsi" val={form.deskripsi} onChange={upd("deskripsi")} textarea />
+
+          {/* Foto */}
+          <div style={{marginBottom:14}}>
+            <label style={{fontSize:12,color:"#888780",display:"block",marginBottom:6}}>Foto Produk</label>
+            <div style={{display:"flex",gap:8,alignItems:"center"}}>
+              <input value={form.foto} onChange={e=>upd("foto")(e.target.value)} placeholder="Paste URL atau upload..."
+                style={{flex:1,padding:"6px 8px",border:"1px solid #ddd",borderRadius:4,fontSize:13,boxSizing:"border-box"}} />
+              <label style={{display:"inline-flex",alignItems:"center",gap:5,cursor:uploading?"default":"pointer",background:uploading?"#aaa":"#185FA5",color:"#fff",padding:"6px 12px",borderRadius:6,fontSize:12,whiteSpace:"nowrap",flexShrink:0}}>
+                {uploading?"Mengupload…":"📁 Upload"}
+                <input type="file" accept="image/*" onChange={handleUpload} disabled={uploading} style={{display:"none"}} />
+              </label>
+            </div>
+            {form.foto && <img src={form.foto} alt="" style={{marginTop:8,height:72,objectFit:"cover",borderRadius:6,border:"0.5px solid #e2e2e0"}} />}
+          </div>
+
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={saveItem} style={{background:"#185FA5",color:"#fff",border:"none",padding:"8px 18px",borderRadius:8,cursor:"pointer",fontSize:13}}>Simpan</button>
+            <button onClick={()=>setEditId(null)} style={{background:"transparent",border:"0.5px solid #ddd",padding:"8px 18px",borderRadius:8,cursor:"pointer",fontSize:13}}>Batal</button>
+          </div>
+        </div>
+      )}
+
+      {/* List per kategori */}
+      {[["sewa","🔑 Penyewaan"],["jual","🛍️ Penjualan"]].map(([kat,label])=>{
+        const items = list.filter(u=>u.kategori===kat);
+        if(!items.length) return null;
+        return (
+          <div key={kat} style={{marginBottom:20}}>
+            <div style={{fontSize:12,fontWeight:600,color:kat==="sewa"?"#185FA5":"#C8922A",marginBottom:8}}>{label}</div>
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              {items.map(u=>(
+                <div key={u.id} style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:10,padding:"10px 14px",display:"flex",alignItems:"center",gap:12}}>
+                  {u.foto
+                    ? <img src={u.foto} alt={u.nama} style={{width:52,height:40,objectFit:"cover",borderRadius:6,flexShrink:0}} />
+                    : <div style={{width:52,height:40,borderRadius:6,background:"#F1EFE8",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{kat==="sewa"?"🔑":"🛍️"}</div>
+                  }
+                  <div style={{flex:1}}>
+                    <div style={{fontWeight:500,fontSize:13,color:"#1a1a18"}}>{u.nama}</div>
+                    <div style={{fontSize:12,color:"#185FA5",fontWeight:600}}>Rp {parseInt(u.harga||0).toLocaleString("id-ID")}<span style={{color:"#888780",fontWeight:400}}>/{u.satuan}</span></div>
+                  </div>
+                  {!u.tersedia && <span style={{background:"#FAECE7",color:"#993C1D",fontSize:10,padding:"2px 8px",borderRadius:10}}>Tidak tersedia</span>}
+                  {u.stok && <span style={{fontSize:11,color:"#888780"}}>{u.stok}</span>}
+                  <button onClick={()=>openEdit(u)} style={{background:"transparent",border:"0.5px solid #ddd",padding:"4px 10px",borderRadius:6,cursor:"pointer",fontSize:12}}>Edit</button>
+                  <button onClick={()=>del(u.id)} style={{background:"transparent",border:"0.5px solid #F09595",color:"#E24B4A",padding:"4px 10px",borderRadius:6,cursor:"pointer",fontSize:12}}>Hapus</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
