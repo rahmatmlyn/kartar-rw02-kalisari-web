@@ -60,6 +60,12 @@ const initData = {
     { id: 1, judul: "Karang Taruna Terbaik Kelurahan Kalisari", penyelenggara: "Kelurahan Kalisari", tahun: "2023", deskripsi: "Penghargaan atas konsistensi dan inovasi program sosial kemasyarakatan.", tingkat: "Kelurahan" },
     { id: 2, judul: "Juara 1 Lomba Kebersihan Lingkungan", penyelenggara: "Kecamatan Pasar Rebo", tahun: "2022", deskripsi: "Penghargaan atas program kerja bakti dan penghijauan lingkungan RW 02.", tingkat: "Kecamatan" },
     { id: 3, judul: "Penghargaan Program Kepemudaan Inovatif", penyelenggara: "Suku Dinas Pemuda & Olahraga Jakarta Timur", tahun: "2022", deskripsi: "Diraih atas program pelatihan digital marketing untuk pemuda yang berdampak luas.", tingkat: "Kota" },
+  ],
+  funfacts: [
+    { id: 1, emoji: "🎉", angka: "50+", label: "Kegiatan digelar sejak berdiri" },
+    { id: 2, emoji: "👥", angka: "85+", label: "Anggota aktif saat ini" },
+    { id: 3, emoji: "🏆", angka: "3", label: "Penghargaan diraih" },
+    { id: 4, emoji: "🌱", angka: "7", label: "Divisi yang aktif bergerak" },
   ]
 };
 
@@ -149,6 +155,8 @@ function Beranda({ data, setPage }) {
     { tahun:"2022", label:"Berprestasi", desc:"Raih 2 penghargaan tingkat kecamatan dan kota" },
     { tahun:"2023", label:"Terbaik", desc:"Dinobatkan Karang Taruna Terbaik Kelurahan Kalisari" },
     { tahun:"2024", label:"Terus Bergerak", desc:"50+ program terlaksana, 85+ anggota aktif, dampak semakin luas" },
+    { tahun:"2025", label:"Regenerasi", desc:"Pergantian kepengurusan baru, semangat baru untuk RW 02 Kalisari" },
+    { tahun:"2026", label:"Melangkah Maju", desc:"Memperluas program dan kolaborasi demi kemajuan pemuda RW 02" },
   ];
 
   return (
@@ -236,35 +244,30 @@ function Beranda({ data, setPage }) {
       </div>
 
       {/* ── PERJALANAN 5 TAHUN ── */}
-      <div style={{maxWidth:1100,margin:"0 auto",padding:"48px 20px"}}>
-        <div style={{textAlign:"center",marginBottom:32}}>
+      <div style={{padding:"48px 0 48px"}}>
+        <div style={{textAlign:"center",marginBottom:32,padding:"0 20px"}}>
           <div style={{fontSize:11,color:"#185FA5",fontWeight:500,letterSpacing:1,textTransform:"uppercase",marginBottom:6}}>Perjalanan kami</div>
           <h2 style={{fontSize:20,fontWeight:500,margin:0,color:"#1a1a18"}}>5 tahun penuh dedikasi</h2>
         </div>
-        <div style={{position:"relative"}}>
-          <div style={{position:"absolute",top:18,left:isMobile?17:"calc(50% - 0.5px)",width:"0.5px",background:"#d4d4d0",height:"calc(100% - 36px)"}} />
-          <div style={{display:"flex",flexDirection:"column",gap:0}}>
-            {timeline.map((t,i)=>(
-              isMobile ? (
-                <div key={t.tahun} style={{display:"flex",gap:14,alignItems:"flex-start",marginBottom:20}}>
-                  <div style={{width:36,height:36,borderRadius:"50%",background:"#185FA5",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:500,flexShrink:0,zIndex:1}}>{t.tahun.slice(2)}</div>
-                  <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:10,padding:"12px 14px",flex:1}}>
-                    <div style={{fontWeight:500,fontSize:13,color:"#1a1a18",marginBottom:4}}>{t.label}</div>
-                    <div style={{fontSize:12,color:"#5F5E5A",lineHeight:1.6}}>{t.desc}</div>
-                  </div>
+        {/* Horizontal scrollable timeline */}
+        <div style={{overflowX:"auto",paddingBottom:8}}>
+          <div style={{display:"flex",alignItems:"flex-end",minWidth:"max-content",padding:"0 40px",position:"relative"}}>
+            {/* Single horizontal line behind all dots */}
+            <div style={{position:"absolute",bottom:20,left:40,right:40,height:1.5,background:"#d4d4d0",zIndex:0}} />
+            {timeline.map((t)=>(
+              <div key={t.tahun} style={{display:"flex",flexDirection:"column",alignItems:"center",width:190,flexShrink:0,zIndex:1}}>
+                {/* Card */}
+                <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:10,padding:"12px 14px",width:"100%",boxSizing:"border-box",minHeight:90}}>
+                  <div style={{fontWeight:600,fontSize:13,color:"#1a1a18",marginBottom:4}}>{t.label}</div>
+                  <div style={{fontSize:11,color:"#5F5E5A",lineHeight:1.6}}>{t.desc}</div>
                 </div>
-              ) : (
-                <div key={t.tahun} style={{display:"flex",gap:0,alignItems:"flex-start",marginBottom:24,flexDirection:i%2===0?"row":"row-reverse"}}>
-                  <div style={{flex:1,padding:i%2===0?"0 32px 0 0":"0 0 0 32px",textAlign:i%2===0?"right":"left"}}>
-                    <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:10,padding:"14px 16px",display:"inline-block",maxWidth:260}}>
-                      <div style={{fontWeight:500,fontSize:13,color:"#1a1a18",marginBottom:4}}>{t.label}</div>
-                      <div style={{fontSize:12,color:"#5F5E5A",lineHeight:1.6}}>{t.desc}</div>
-                    </div>
-                  </div>
-                  <div style={{width:36,height:36,borderRadius:"50%",background:"#185FA5",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:500,flexShrink:0,zIndex:1}}>{t.tahun.slice(2)}</div>
-                  <div style={{flex:1}} />
+                {/* Vertical line */}
+                <div style={{width:1.5,height:24,background:"#d4d4d0"}} />
+                {/* Dot */}
+                <div style={{width:40,height:40,borderRadius:"50%",background:"#185FA5",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:600,flexShrink:0}}>
+                  {t.tahun.slice(2)}
                 </div>
-              )
+              </div>
             ))}
           </div>
         </div>
@@ -321,6 +324,27 @@ function Beranda({ data, setPage }) {
           ))}
         </div>
       </div>
+
+      {/* ── FUN FACTS ── */}
+      {data.funfacts?.length > 0 && (
+        <div style={{background:"#0D4A8A",padding:"48px 20px"}}>
+          <div style={{maxWidth:1100,margin:"0 auto"}}>
+            <div style={{textAlign:"center",marginBottom:32}}>
+              <div style={{fontSize:11,color:"#C8922A",fontWeight:600,letterSpacing:1.2,textTransform:"uppercase",marginBottom:8}}>Tahukah kamu?</div>
+              <h2 style={{color:"#fff",fontWeight:500,fontSize:22,margin:0}}>Fun Fact Karang Taruna Unit RW 02 kalisari</h2>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:`repeat(auto-fit,minmax(200px,1fr))`,gap:16}}>
+              {data.funfacts.map(f=>(
+                <div key={f.id} style={{background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:14,padding:"28px 20px",textAlign:"center"}}>
+                  <div style={{fontSize:36,marginBottom:10}}>{f.emoji}</div>
+                  <div style={{fontSize:32,fontWeight:700,color:"#C8922A",lineHeight:1}}>{f.angka}</div>
+                  <div style={{fontSize:13,color:"rgba(255,255,255,0.8)",marginTop:8,lineHeight:1.4}}>{f.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── SOSMED CTA ── */}
       <div style={{background:"#185FA5",padding:"40px 20px",textAlign:"center",color:"#fff"}}>
@@ -940,7 +964,7 @@ function AdminPanel({ data, setData, onLogout }) {
       </div>
       {msg && <div style={{background:msg.startsWith("Gagal")?"#FAECE7":"#E8F0FB",color:msg.startsWith("Gagal")?"#993C1D":"#0A3670",padding:"10px 16px",borderRadius:8,marginBottom:16,fontSize:13}}>{msg}</div>}
       <div style={{display:"flex",gap:6,marginBottom:24,borderBottom:"0.5px solid #e8e8e5",paddingBottom:12,flexWrap:"wrap"}}>
-        {[["profil","Profil"],["kegiatan","Kegiatan"],["galeri","Galeri"],["pengurus","Pengurus"],["penghargaan","Penghargaan"],["feedback","Kritik & Saran"]].map(([k,l])=>(
+        {[["profil","Profil"],["kegiatan","Kegiatan"],["galeri","Galeri"],["pengurus","Pengurus"],["penghargaan","Penghargaan"],["funfact","Fun Fact"],["feedback","Kritik & Saran"]].map(([k,l])=>(
           <button key={k} onClick={()=>setTab(k)} style={{background:tab===k?"#E8F0FB":"transparent",color:tab===k?"#0A3670":"#5F5E5A",border:"none",padding:"7px 16px",borderRadius:6,cursor:"pointer",fontSize:13,fontWeight:tab===k?500:400}}>{l}</button>
         ))}
       </div>
@@ -949,6 +973,7 @@ function AdminPanel({ data, setData, onLogout }) {
       {tab==="galeri" && <AdminGaleri data={data} save={save} />}
       {tab==="pengurus" && <AdminPengurus data={data} save={save} />}
       {tab==="penghargaan" && <AdminPenghargaan data={data} save={save} />}
+      {tab==="funfact" && <AdminFunFact data={data} save={save} />}
       {tab==="feedback" && <AdminFeedback />}
     </div>
   );
@@ -1163,6 +1188,90 @@ function AdminPengurus({ data, save }) {
             <div style={{flex:1}}><div style={{fontWeight:500,fontSize:13,color:"#1a1a18"}}>{p.nama}</div><div style={{fontSize:12,color:"#185FA5"}}>{p.jabatan} · {p.periode}</div></div>
             <button onClick={()=>{setEdit(p.id);setForm({...p});}} style={{background:"transparent",border:"0.5px solid #ddd",padding:"4px 10px",borderRadius:6,cursor:"pointer",fontSize:12}}>Edit</button>
             <button onClick={()=>del(p.id)} style={{background:"transparent",border:"0.5px solid #F09595",color:"#E24B4A",padding:"4px 10px",borderRadius:6,cursor:"pointer",fontSize:12}}>Hapus</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AdminFunFact({ data, save }) {
+  const emptyForm = { emoji:"🎯", angka:"", label:"" };
+  const [list, setList] = useState(data.funfacts || []);
+  const [form, setForm] = useState(emptyForm);
+  const [editId, setEditId] = useState(null);
+
+  const upd = k => v => setForm(f => ({...f,[k]:v}));
+
+  const openNew = () => { setEditId("new"); setForm(emptyForm); };
+  const openEdit = item => { setEditId(item.id); setForm({emoji:item.emoji,angka:item.angka,label:item.label}); };
+
+  const saveItem = () => {
+    const nl = editId==="new"
+      ? [...list, {...form, id:Date.now()}]
+      : list.map(f => f.id===editId ? {...form, id:editId} : f);
+    setList(nl); save({...data, funfacts:nl}); setEditId(null);
+  };
+
+  const del = id => { const nl=list.filter(f=>f.id!==id); setList(nl); save({...data,funfacts:nl}); };
+
+  const EMOJIS = ["🎉","👥","🏆","🌱","⚽","🎨","📚","💡","🤝","🏅","🎤","🌍"];
+
+  return (
+    <div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+        <span style={{fontSize:14,color:"#888780"}}>{list.length} fun fact</span>
+        <button onClick={openNew} style={{background:"#185FA5",color:"#fff",border:"none",padding:"7px 14px",borderRadius:8,cursor:"pointer",fontSize:13}}>+ Tambah</button>
+      </div>
+
+      {editId && (
+        <div style={{background:"#F7F6F1",borderRadius:12,padding:18,marginBottom:16}}>
+          <div style={{fontWeight:500,marginBottom:14,fontSize:14}}>{editId==="new"?"Tambah Fun Fact":"Edit Fun Fact"}</div>
+
+          {/* Emoji picker */}
+          <div style={{marginBottom:12}}>
+            <label style={{fontSize:12,color:"#888780",display:"block",marginBottom:6}}>Emoji</label>
+            <div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:8}}>
+              {EMOJIS.map(e=>(
+                <button key={e} onClick={()=>upd("emoji")(e)}
+                  style={{fontSize:20,padding:"4px 8px",borderRadius:6,border:`1.5px solid ${form.emoji===e?"#185FA5":"#ddd"}`,background:form.emoji===e?"#E8F0FB":"#fff",cursor:"pointer"}}>
+                  {e}
+                </button>
+              ))}
+            </div>
+            <input value={form.emoji} onChange={e=>upd("emoji")(e.target.value)} placeholder="atau ketik emoji lain..."
+              style={{width:80,padding:"5px 8px",border:"1px solid #ddd",borderRadius:6,fontSize:16,textAlign:"center"}} />
+          </div>
+
+          <div style={{display:"grid",gridTemplateColumns:"1fr 2fr",gap:12}}>
+            <Field label="Angka / Nilai" val={form.angka} onChange={upd("angka")} />
+            <Field label="Keterangan" val={form.label} onChange={upd("label")} />
+          </div>
+
+          {/* Preview */}
+          <div style={{background:"#0D4A8A",borderRadius:12,padding:"20px",textAlign:"center",marginBottom:14,maxWidth:200}}>
+            <div style={{fontSize:28,marginBottom:6}}>{form.emoji}</div>
+            <div style={{fontSize:24,fontWeight:700,color:"#C8922A"}}>{form.angka||"—"}</div>
+            <div style={{fontSize:12,color:"rgba(255,255,255,0.8)",marginTop:6}}>{form.label||"Keterangan"}</div>
+          </div>
+
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={saveItem} style={{background:"#185FA5",color:"#fff",border:"none",padding:"8px 18px",borderRadius:8,cursor:"pointer",fontSize:13}}>Simpan</button>
+            <button onClick={()=>setEditId(null)} style={{background:"transparent",border:"0.5px solid #ddd",padding:"8px 18px",borderRadius:8,cursor:"pointer",fontSize:13}}>Batal</button>
+          </div>
+        </div>
+      )}
+
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        {list.map(f=>(
+          <div key={f.id} style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:10,padding:"12px 16px",display:"flex",alignItems:"center",gap:12}}>
+            <div style={{fontSize:28,flexShrink:0}}>{f.emoji}</div>
+            <div style={{flex:1}}>
+              <div style={{fontWeight:600,fontSize:18,color:"#C8922A",lineHeight:1}}>{f.angka}</div>
+              <div style={{fontSize:13,color:"#5F5E5A",marginTop:2}}>{f.label}</div>
+            </div>
+            <button onClick={()=>openEdit(f)} style={{background:"transparent",border:"0.5px solid #ddd",padding:"4px 10px",borderRadius:6,cursor:"pointer",fontSize:12}}>Edit</button>
+            <button onClick={()=>del(f.id)} style={{background:"transparent",border:"0.5px solid #F09595",color:"#E24B4A",padding:"4px 10px",borderRadius:6,cursor:"pointer",fontSize:12}}>Hapus</button>
           </div>
         ))}
       </div>
