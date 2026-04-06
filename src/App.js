@@ -435,6 +435,35 @@ function Profil({ data }) {
   );
 }
 
+function KegiatanCard({ k, fotos }) {
+  const [idx, setIdx] = useState(0);
+  const prev = e => { e.stopPropagation(); setIdx(i => (i-1+fotos.length)%fotos.length); };
+  const next = e => { e.stopPropagation(); setIdx(i => (i+1)%fotos.length); };
+  return (
+    <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,overflow:"hidden"}}>
+      <div style={{position:"relative",height:180}}>
+        {fotos.length > 0
+          ? <img src={fotos[idx]} alt={k.judul} style={{width:"100%",height:180,objectFit:"cover",display:"block"}} />
+          : <div style={{width:"100%",height:180,background:"#f0f0ee",display:"flex",alignItems:"center",justifyContent:"center",color:"#ccc",fontSize:13}}>Tidak ada foto</div>
+        }
+        {fotos.length > 1 && (
+          <>
+            <button onClick={prev} style={{position:"absolute",left:6,top:"50%",transform:"translateY(-50%)",background:"rgba(0,0,0,0.4)",color:"#fff",border:"none",borderRadius:"50%",width:26,height:26,cursor:"pointer",fontSize:14,lineHeight:"26px",padding:0}}>‹</button>
+            <button onClick={next} style={{position:"absolute",right:6,top:"50%",transform:"translateY(-50%)",background:"rgba(0,0,0,0.4)",color:"#fff",border:"none",borderRadius:"50%",width:26,height:26,cursor:"pointer",fontSize:14,lineHeight:"26px",padding:0}}>›</button>
+            <span style={{position:"absolute",bottom:6,right:8,background:"rgba(0,0,0,0.5)",color:"#fff",fontSize:10,padding:"2px 6px",borderRadius:10}}>{idx+1}/{fotos.length}</span>
+          </>
+        )}
+      </div>
+      <div style={{padding:16}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}><Badge kat={k.kategori} /><span style={{fontSize:11,color:"#888780"}}>{k.tanggal}</span></div>
+        <div style={{fontWeight:500,fontSize:15,marginBottom:6,color:"#1a1a18"}}>{k.judul}</div>
+        <p style={{fontSize:13,color:"#5F5E5A",margin:"0 0 10px",lineHeight:1.5}}>{k.deskripsi}</p>
+        {k.link && <a href={k.link} target="_blank" rel="noreferrer" style={{fontSize:12,color:"#185FA5",textDecoration:"none"}}>Lihat dokumentasi →</a>}
+      </div>
+    </div>
+  );
+}
+
 // ── KEGIATAN ──────────────────────────────────────────────────────────
 function Kegiatan({ data }) {
   const [filter, setFilter] = useState("Semua");
@@ -459,17 +488,10 @@ function Kegiatan({ data }) {
         ))}
       </div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:16}}>
-        {sorted.map(k=>(
-          <div key={k.id} style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,overflow:"hidden"}}>
-            <img src={k.foto} alt={k.judul} style={{width:"100%",height:180,objectFit:"cover",display:"block"}} />
-            <div style={{padding:16}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}><Badge kat={k.kategori} /><span style={{fontSize:11,color:"#888780"}}>{k.tanggal}</span></div>
-              <div style={{fontWeight:500,fontSize:15,marginBottom:6,color:"#1a1a18"}}>{k.judul}</div>
-              <p style={{fontSize:13,color:"#5F5E5A",margin:"0 0 10px",lineHeight:1.5}}>{k.deskripsi}</p>
-              {k.link && <a href={k.link} target="_blank" rel="noreferrer" style={{fontSize:12,color:"#185FA5",textDecoration:"none"}}>Lihat dokumentasi →</a>}
-            </div>
-          </div>
-        ))}
+        {sorted.map(k=>{
+          const fotos = k.fotos?.length ? k.fotos : (k.foto ? [k.foto] : []);
+          return <KegiatanCard key={k.id} k={k} fotos={fotos} />;
+        })}
       </div>
       {sorted.length===0 && <p style={{color:"#888780",textAlign:"center",marginTop:40}}>Tidak ada kegiatan di kategori ini.</p>}
     </div>
@@ -982,16 +1004,40 @@ function AdminProfil({ data, save }) {
 }
 
 function AdminKegiatan({ data, save }) {
+  const emptyForm = {judul:"",kategori:"Sosial",tanggal:"",deskripsi:"",fotos:[],link:""};
   const [list, setList] = useState(data.kegiatan);
   const [edit, setEdit] = useState(null);
-  const [form, setForm] = useState({judul:"",kategori:"Sosial",tanggal:"",deskripsi:"",foto:"",link:""});
-  const upd = k => v => setForm({...form,[k]:v});
-  const openNew = () => { setEdit("new"); setForm({judul:"",kategori:"Sosial",tanggal:"",deskripsi:"",foto:"",link:""}); };
+  const [form, setForm] = useState(emptyForm);
+  const [uploading, setUploading] = useState(false);
+  const upd = k => v => setForm(f => ({...f,[k]:v}));
+
+  const openNew = () => { setEdit("new"); setForm(emptyForm); };
+  const openEdit = k => {
+    setEdit(k.id);
+    // normalise: support legacy single foto field
+    setForm({...k, fotos: k.fotos?.length ? k.fotos : (k.foto ? [k.foto] : [])});
+  };
+
   const saveItem = () => {
-    const nl = edit==="new" ? [...list,{...form,id:Date.now()}] : list.map(k=>k.id===edit?{...form,id:edit}:k);
+    const item = {...form, foto: form.fotos[0]||""};
+    const nl = edit==="new" ? [...list,{...item,id:Date.now()}] : list.map(k=>k.id===edit?{...item,id:edit}:k);
     setList(nl); save({...data,kegiatan:nl}); setEdit(null);
   };
   const del = id => { const nl=list.filter(k=>k.id!==id); setList(nl); save({...data,kegiatan:nl}); };
+
+  const handleUploadMulti = async e => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    setUploading(true);
+    try {
+      const urls = await Promise.all(files.map(f => uploadFoto(f, "kegiatan")));
+      setForm(f => ({...f, fotos:[...f.fotos, ...urls]}));
+    } catch(err) { alert("Upload gagal: "+err.message); }
+    finally { setUploading(false); e.target.value=""; }
+  };
+
+  const removeFoto = idx => setForm(f => ({...f, fotos:f.fotos.filter((_,i)=>i!==idx)}));
+
   return (
     <div>
       <div style={{display:"flex",justifyContent:"space-between",marginBottom:14}}>
@@ -1005,10 +1051,31 @@ function AdminKegiatan({ data, save }) {
             <Field label="Judul" val={form.judul} onChange={upd("judul")} />
             <div style={{marginBottom:12}}><label style={{fontSize:12,color:"#888780",display:"block",marginBottom:4}}>Kategori</label><select value={form.kategori} onChange={e=>upd("kategori")(e.target.value)} style={{width:"100%",boxSizing:"border-box"}}>{CATS.slice(1).map(c=><option key={c}>{c}</option>)}</select></div>
             <Field label="Tanggal" val={form.tanggal} onChange={upd("tanggal")} type="date" />
-            <FotoField val={form.foto} onChange={upd("foto")} folder="kegiatan" />
+            <Field label="Link dokumentasi" val={form.link} onChange={upd("link")} />
           </div>
-          <Field label="Link dokumentasi" val={form.link} onChange={upd("link")} />
           <Field label="Deskripsi" val={form.deskripsi} onChange={upd("deskripsi")} textarea />
+
+          {/* Multi-foto upload */}
+          <div style={{marginBottom:12}}>
+            <label style={{fontSize:12,color:"#888780",display:"block",marginBottom:6}}>Foto kegiatan ({form.fotos.length} foto)</label>
+            {/* Grid preview */}
+            {form.fotos.length > 0 && (
+              <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:10}}>
+                {form.fotos.map((url,idx)=>(
+                  <div key={idx} style={{position:"relative",flexShrink:0}}>
+                    <img src={url} alt="" style={{width:80,height:60,objectFit:"cover",borderRadius:6,display:"block",border:"0.5px solid #ddd"}} />
+                    {idx===0 && <span style={{position:"absolute",top:3,left:3,background:"#185FA5",color:"#fff",fontSize:9,padding:"1px 4px",borderRadius:3}}>Cover</span>}
+                    <button onClick={()=>removeFoto(idx)} style={{position:"absolute",top:3,right:3,background:"rgba(0,0,0,0.55)",color:"#fff",border:"none",borderRadius:"50%",width:16,height:16,cursor:"pointer",fontSize:10,lineHeight:"16px",padding:0}}>✕</button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <label style={{display:"inline-flex",alignItems:"center",gap:6,cursor:uploading?"default":"pointer",background:uploading?"#aaa":"#185FA5",color:"#fff",padding:"7px 14px",borderRadius:6,fontSize:12}}>
+              {uploading ? "Mengupload…" : "📁 Upload foto (bisa pilih banyak)"}
+              <input type="file" accept="image/*" multiple onChange={handleUploadMulti} disabled={uploading} style={{display:"none"}} />
+            </label>
+          </div>
+
           <div style={{display:"flex",gap:8}}>
             <button onClick={saveItem} style={{background:"#185FA5",color:"#fff",border:"none",padding:"8px 18px",borderRadius:8,cursor:"pointer",fontSize:13}}>Simpan</button>
             <button onClick={()=>setEdit(null)} style={{background:"transparent",border:"0.5px solid #ddd",padding:"8px 18px",borderRadius:8,cursor:"pointer",fontSize:13}}>Batal</button>
@@ -1018,9 +1085,12 @@ function AdminKegiatan({ data, save }) {
       <div style={{display:"flex",flexDirection:"column",gap:8}}>
         {[...list].sort((a,b)=>b.tanggal.localeCompare(a.tanggal)).map(k=>(
           <div key={k.id} style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:10,padding:"12px 14px",display:"flex",alignItems:"center",gap:10}}>
-            <img src={k.foto} alt="" style={{width:52,height:38,objectFit:"cover",borderRadius:6}} />
-            <div style={{flex:1}}><div style={{fontWeight:500,fontSize:13,color:"#1a1a18"}}>{k.judul}</div><div style={{fontSize:12,color:"#888780",marginTop:2}}><Badge kat={k.kategori} /> · {k.tanggal}</div></div>
-            <button onClick={()=>{setEdit(k.id);setForm({...k});}} style={{background:"transparent",border:"0.5px solid #ddd",padding:"4px 10px",borderRadius:6,cursor:"pointer",fontSize:12}}>Edit</button>
+            <img src={k.fotos?.[0]||k.foto||""} alt="" style={{width:52,height:38,objectFit:"cover",borderRadius:6}} />
+            <div style={{flex:1}}>
+              <div style={{fontWeight:500,fontSize:13,color:"#1a1a18"}}>{k.judul}</div>
+              <div style={{fontSize:12,color:"#888780",marginTop:2}}><Badge kat={k.kategori} /> · {k.tanggal} · {(k.fotos?.length||+(!!k.foto))} foto</div>
+            </div>
+            <button onClick={()=>openEdit(k)} style={{background:"transparent",border:"0.5px solid #ddd",padding:"4px 10px",borderRadius:6,cursor:"pointer",fontSize:12}}>Edit</button>
             <button onClick={()=>del(k.id)} style={{background:"transparent",border:"0.5px solid #F09595",color:"#E24B4A",padding:"4px 10px",borderRadius:6,cursor:"pointer",fontSize:12}}>Hapus</button>
           </div>
         ))}
