@@ -466,18 +466,18 @@ function Beranda({ data, setPage }) {
 
       {/* ── FUN FACTS ── */}
       {data.funfacts?.length > 0 && (
-        <div style={{background:"#0D4A8A",padding:"48px 20px"}}>
+        <div style={{background:"#0D4A8A",padding:"36px 20px"}}>
           <div style={{maxWidth:1100,margin:"0 auto"}}>
-            <div style={{textAlign:"center",marginBottom:32}}>
-              <div style={{fontSize:11,color:"#C8922A",fontWeight:600,letterSpacing:1.2,textTransform:"uppercase",marginBottom:8}}>Tahukah kamu?</div>
-              <h2 style={{color:"#fff",fontWeight:500,fontSize:22,margin:0}}>Fun Fact Karang Taruna Unit RW 02 kalisari</h2>
+            <div style={{textAlign:"center",marginBottom:24}}>
+              <div style={{fontSize:10,color:"#C8922A",fontWeight:600,letterSpacing:1.2,textTransform:"uppercase",marginBottom:6}}>Tahukah kamu?</div>
+              <h2 style={{color:"#fff",fontWeight:500,fontSize:18,margin:0}}>Fun Fact Karang Taruna RW 02</h2>
             </div>
-            <div style={{display:"grid",gridTemplateColumns:`repeat(auto-fit,minmax(200px,1fr))`,gap:16}}>
+            <div style={{display:"grid",gridTemplateColumns:`repeat(auto-fit,minmax(150px,1fr))`,gap:10}}>
               {data.funfacts.map(f=>(
-                <div key={f.id} style={{background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:14,padding:"28px 20px",textAlign:"center"}}>
-                  <div style={{fontSize:36,marginBottom:10}}>{f.emoji}</div>
-                  <div style={{fontSize:32,fontWeight:700,color:"#C8922A",lineHeight:1}}>{f.angka}</div>
-                  <div style={{fontSize:13,color:"rgba(255,255,255,0.8)",marginTop:8,lineHeight:1.4}}>{f.label}</div>
+                <div key={f.id} style={{background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:10,padding:"18px 14px",textAlign:"center"}}>
+                  <div style={{fontSize:24,marginBottom:6}}>{f.emoji}</div>
+                  <div style={{fontSize:22,fontWeight:700,color:"#C8922A",lineHeight:1}}>{f.angka}</div>
+                  <div style={{fontSize:11,color:"rgba(255,255,255,0.75)",marginTop:6,lineHeight:1.4}}>{f.label}</div>
                 </div>
               ))}
             </div>
