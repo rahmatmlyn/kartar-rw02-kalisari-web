@@ -1268,12 +1268,46 @@ function AdminKegiatan({ data, save }) {
 function AdminGaleri({ data, save }) {
   const [list, setList] = useState(data.galeri);
   const [url, setUrl] = useState(""); const [cap, setCap] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState("");
+
   const add = () => { if(!url) return; const nl=[...list,{id:Date.now(),url,caption:cap}]; setList(nl); save({...data,galeri:nl}); setUrl(""); setCap(""); };
   const del = id => { const nl=list.filter(g=>g.id!==id); setList(nl); save({...data,galeri:nl}); };
+
+  const handleMultiUpload = async e => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    setUploading(true);
+    const results = [];
+    for (let i = 0; i < files.length; i++) {
+      setProgress(`Mengupload ${i+1}/${files.length}...`);
+      try {
+        const uploadedUrl = await uploadFoto(files[i], "galeri");
+        results.push({ id: Date.now() + i, url: uploadedUrl, caption: files[i].name.replace(/\.[^.]+$/, ""), tahun: new Date().getFullYear().toString() });
+      } catch(err) { /* skip failed */ }
+    }
+    const nl = [...list, ...results];
+    setList(nl); save({...data, galeri:nl});
+    setUploading(false); setProgress(""); e.target.value="";
+  };
+
   return (
     <div>
       <div style={{background:"#F7F6F1",borderRadius:12,padding:18,marginBottom:16}}>
         <div style={{fontWeight:500,marginBottom:12,fontSize:14}}>Tambah foto</div>
+
+        {/* Multi upload */}
+        <div style={{marginBottom:14}}>
+          <label style={{fontSize:12,color:"#888780",display:"block",marginBottom:6}}>Upload banyak foto sekaligus</label>
+          <label style={{display:"inline-flex",alignItems:"center",gap:6,cursor:uploading?"default":"pointer",background:uploading?"#aaa":"#185FA5",color:"#fff",padding:"8px 18px",borderRadius:8,fontSize:13}}>
+            {uploading ? progress : "📁 Pilih foto (bisa banyak)"}
+            <input type="file" accept="image/*" multiple onChange={handleMultiUpload} disabled={uploading} style={{display:"none"}} />
+          </label>
+          {uploading && <div style={{fontSize:12,color:"#888780",marginTop:6}}>{progress}</div>}
+        </div>
+
+        <div style={{height:1,background:"#e2e2e0",margin:"14px 0"}} />
+        <div style={{fontSize:12,color:"#888780",marginBottom:10}}>Atau tambah satu foto via URL:</div>
         <FotoField val={url} onChange={setUrl} folder="galeri" />
         <Field label="Keterangan" val={cap} onChange={setCap} />
         <button onClick={add} style={{background:"#185FA5",color:"#fff",border:"none",padding:"8px 18px",borderRadius:8,cursor:"pointer",fontSize:13}}>Tambah</button>
