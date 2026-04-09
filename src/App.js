@@ -1270,8 +1270,14 @@ function AdminGaleri({ data, save }) {
   const [url, setUrl] = useState(""); const [cap, setCap] = useState("");
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState("");
+  // Drive import
+  const [folderId, setFolderId] = useState("");
+  const [drivePhotos, setDrivePhotos] = useState([]);
+  const [driveLoading, setDriveLoading] = useState(false);
+  const [driveError, setDriveError] = useState("");
+  const [selected, setSelected] = useState({});
 
-  const add = () => { if(!url) return; const nl=[...list,{id:Date.now(),url,caption:cap}]; setList(nl); save({...data,galeri:nl}); setUrl(""); setCap(""); };
+  const add = () => { if(!url) return; const nl=[...list,{id:Date.now(),url,caption:cap,tahun:new Date().getFullYear().toString()}]; setList(nl); save({...data,galeri:nl}); setUrl(""); setCap(""); };
   const del = id => { const nl=list.filter(g=>g.id!==id); setList(nl); save({...data,galeri:nl}); };
 
   const handleMultiUpload = async e => {
@@ -1291,19 +1297,123 @@ function AdminGaleri({ data, save }) {
     setUploading(false); setProgress(""); e.target.value="";
   };
 
+  // Ekstrak folder ID dari URL Drive jika user paste URL lengkap
+  const parseFolderId = raw => {
+    const m = raw.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+    return m ? m[1] : raw.trim();
+  };
+
+  const loadDriveFolder = async () => {
+    const apiKey = process.env.REACT_APP_GOOGLE_API_KEY;
+    if (!apiKey) { setDriveError("REACT_APP_GOOGLE_API_KEY belum diisi di .env"); return; }
+    const id = parseFolderId(folderId);
+    if (!id) { setDriveError("Masukkan Folder ID atau URL folder Drive"); return; }
+    setDriveLoading(true); setDriveError(""); setDrivePhotos([]); setSelected({});
+    try {
+      let all = [], pageToken = "";
+      do {
+        const res = await fetch(
+          `https://www.googleapis.com/drive/v3/files?q='${id}'+in+parents+and+mimeType+contains+'image/'+and+trashed=false&fields=nextPageToken,files(id,name,thumbnailLink)&pageSize=100&key=${apiKey}${pageToken?`&pageToken=${pageToken}`:""}`
+        );
+        if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || "Gagal mengambil data"); }
+        const json = await res.json();
+        all = [...all, ...(json.files||[])];
+        pageToken = json.nextPageToken || "";
+      } while (pageToken);
+      setDrivePhotos(all);
+      if (all.length === 0) setDriveError("Tidak ada foto di folder ini, pastikan folder sudah dishare ke 'Anyone with the link'");
+    } catch(err) { setDriveError(err.message); }
+    setDriveLoading(false);
+  };
+
+  const toggleSelect = id => setSelected(s => ({...s, [id]: !s[id]}));
+  const selectAll = () => { const s={}; drivePhotos.forEach(p=>s[p.id]=true); setSelected(s); };
+  const clearSelect = () => setSelected({});
+
+  const importSelected = () => {
+    const tahun = new Date().getFullYear().toString();
+    const toAdd = drivePhotos
+      .filter(p => selected[p.id])
+      .map((p,i) => ({
+        id: Date.now()+i,
+        url: `https://drive.google.com/uc?export=view&id=${p.id}`,
+        caption: p.name.replace(/\.[^.]+$/, ""),
+        tahun,
+      }));
+    if (!toAdd.length) return;
+    const nl = [...list, ...toAdd];
+    setList(nl); save({...data, galeri:nl});
+    setSelected({}); setDrivePhotos([]); setFolderId("");
+  };
+
+  const selectedCount = Object.values(selected).filter(Boolean).length;
+
   return (
     <div>
       <div style={{background:"#F7F6F1",borderRadius:12,padding:18,marginBottom:16}}>
-        <div style={{fontWeight:500,marginBottom:12,fontSize:14}}>Tambah foto</div>
+        <div style={{fontWeight:500,marginBottom:16,fontSize:14}}>Tambah foto</div>
 
-        {/* Multi upload */}
+        {/* ── Import dari Google Drive ── */}
+        <div style={{background:"#E8F0FB",borderRadius:10,padding:16,marginBottom:16}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+            <span style={{fontSize:16}}>📂</span>
+            <span style={{fontSize:13,fontWeight:600,color:"#185FA5"}}>Import dari Google Drive</span>
+          </div>
+          <div style={{fontSize:11,color:"#5F5E5A",marginBottom:10,lineHeight:1.5}}>
+            Paste URL folder atau Folder ID dari Google Drive. Pastikan folder sudah dishare ke <b>"Anyone with the link"</b>.
+          </div>
+          <div style={{display:"flex",gap:8}}>
+            <input
+              value={folderId}
+              onChange={e=>setFolderId(e.target.value)}
+              placeholder="https://drive.google.com/drive/folders/... atau Folder ID"
+              style={{flex:1,padding:"7px 10px",border:"1px solid #ddd",borderRadius:6,fontSize:12,boxSizing:"border-box"}}
+            />
+            <button onClick={loadDriveFolder} disabled={driveLoading}
+              style={{background:driveLoading?"#aaa":"#185FA5",color:"#fff",border:"none",padding:"7px 14px",borderRadius:6,cursor:driveLoading?"default":"pointer",fontSize:12,whiteSpace:"nowrap"}}>
+              {driveLoading?"Memuat...":"Muat Foto"}
+            </button>
+          </div>
+          {driveError && <div style={{marginTop:8,fontSize:11,color:"#993C1D",background:"#FAECE7",padding:"6px 10px",borderRadius:6}}>{driveError}</div>}
+
+          {drivePhotos.length > 0 && (
+            <div style={{marginTop:14}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                <span style={{fontSize:12,color:"#5F5E5A"}}>{drivePhotos.length} foto ditemukan · <b>{selectedCount}</b> dipilih</span>
+                <div style={{display:"flex",gap:6}}>
+                  <button onClick={selectAll} style={{fontSize:11,background:"transparent",border:"0.5px solid #185FA5",color:"#185FA5",padding:"3px 10px",borderRadius:6,cursor:"pointer"}}>Pilih Semua</button>
+                  <button onClick={clearSelect} style={{fontSize:11,background:"transparent",border:"0.5px solid #ddd",color:"#888780",padding:"3px 10px",borderRadius:6,cursor:"pointer"}}>Batal Pilih</button>
+                </div>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(90px,1fr))",gap:6,maxHeight:280,overflowY:"auto"}}>
+                {drivePhotos.map(p=>(
+                  <div key={p.id} onClick={()=>toggleSelect(p.id)}
+                    style={{position:"relative",aspectRatio:"1",borderRadius:6,overflow:"hidden",cursor:"pointer",
+                      outline:selected[p.id]?"3px solid #185FA5":"2px solid transparent",outlineOffset:1}}>
+                    <img src={p.thumbnailLink} alt={p.name} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} />
+                    {selected[p.id] && (
+                      <div style={{position:"absolute",top:4,right:4,width:18,height:18,borderRadius:"50%",background:"#185FA5",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                        <span style={{color:"#fff",fontSize:11,lineHeight:1}}>✓</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <button onClick={importSelected} disabled={selectedCount===0}
+                style={{marginTop:12,background:selectedCount===0?"#aaa":"#185FA5",color:"#fff",border:"none",padding:"8px 18px",borderRadius:8,cursor:selectedCount===0?"default":"pointer",fontSize:13}}>
+                Import {selectedCount > 0 ? `${selectedCount} foto` : "foto yang dipilih"}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* ── Upload dari perangkat ── */}
         <div style={{marginBottom:14}}>
-          <label style={{fontSize:12,color:"#888780",display:"block",marginBottom:6}}>Upload banyak foto sekaligus</label>
-          <label style={{display:"inline-flex",alignItems:"center",gap:6,cursor:uploading?"default":"pointer",background:uploading?"#aaa":"#185FA5",color:"#fff",padding:"8px 18px",borderRadius:8,fontSize:13}}>
-            {uploading ? progress : "📁 Pilih foto (bisa banyak)"}
+          <label style={{fontSize:12,color:"#888780",display:"block",marginBottom:6}}>Upload dari perangkat (bisa banyak sekaligus)</label>
+          <label style={{display:"inline-flex",alignItems:"center",gap:6,cursor:uploading?"default":"pointer",background:uploading?"#aaa":"#0D4A8A",color:"#fff",padding:"8px 18px",borderRadius:8,fontSize:13}}>
+            {uploading ? progress : "📁 Pilih foto"}
             <input type="file" accept="image/*" multiple onChange={handleMultiUpload} disabled={uploading} style={{display:"none"}} />
           </label>
-          {uploading && <div style={{fontSize:12,color:"#888780",marginTop:6}}>{progress}</div>}
         </div>
 
         <div style={{height:1,background:"#e2e2e0",margin:"14px 0"}} />
