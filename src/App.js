@@ -490,10 +490,12 @@ function Beranda({ data, setPage }) {
         <div style={{maxWidth:600,margin:"0 auto"}}>
           <div style={{fontSize:11,opacity:0.7,letterSpacing:1,textTransform:"uppercase",marginBottom:8}}>Ikuti perjalanan kami</div>
           <h2 style={{fontWeight:500,fontSize:20,margin:"0 0 8px"}}>Update kegiatan terkini</h2>
-          <p style={{fontSize:13,opacity:0.8,margin:"0 0 24px"}}>Saksikan momen-momen berharga Karang Taruna RW 02 di Instagram dan YouTube kami.</p>
+          <p style={{fontSize:13,opacity:0.8,margin:"0 0 24px"}}>Saksikan momen-momen berharga Karang Taruna RW 02 di media sosial kami.</p>
           <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
-            <a href="https://www.instagram.com/kartarr_02/" target="_blank" rel="noreferrer" style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",borderRadius:8,padding:"10px 20px",textDecoration:"none",fontSize:13,fontWeight:500}}>Instagram @kartarr_02</a>
-            <a href="https://www.youtube.com/@karangtarunarw02kalisari70" target="_blank" rel="noreferrer" style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",borderRadius:8,padding:"10px 20px",textDecoration:"none",fontSize:13,fontWeight:500}}>YouTube Channel</a>
+            <a href="https://www.instagram.com/kartarr_02/" target="_blank" rel="noreferrer" style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",borderRadius:8,padding:"10px 20px",textDecoration:"none",fontSize:13,fontWeight:500}}>📸 Instagram</a>
+            <a href="https://www.youtube.com/@karangtarunarw02kalisari70" target="_blank" rel="noreferrer" style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",borderRadius:8,padding:"10px 20px",textDecoration:"none",fontSize:13,fontWeight:500}}>▶️ YouTube</a>
+            <a href="https://www.tiktok.com/@karangtarunarw02kalisari" target="_blank" rel="noreferrer" style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",borderRadius:8,padding:"10px 20px",textDecoration:"none",fontSize:13,fontWeight:500}}>🎵 TikTok</a>
+            <a href="mailto:karangtarunarukunwarga02@gmail.com" style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",borderRadius:8,padding:"10px 20px",textDecoration:"none",fontSize:13,fontWeight:500}}>✉️ Email</a>
           </div>
         </div>
       </div>
@@ -858,8 +860,10 @@ function Kontak({ isAdmin }) {
         <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:20}}>
           <div style={{fontWeight:500,marginBottom:10,color:"#1a1a18"}}>Media sosial</div>
           <div style={{display:"flex",flexDirection:"column",gap:8}}>
-            <a href="https://www.instagram.com/kartarr_02/" target="_blank" rel="noreferrer" style={{fontSize:13,color:"#C13584",textDecoration:"none"}}>Instagram: @kartarr_02</a>
-            <a href="https://www.youtube.com/@karangtarunarw02kalisari70" target="_blank" rel="noreferrer" style={{fontSize:13,color:"#FF0000",textDecoration:"none"}}>YouTube: Karang Taruna RW 02 Kalisari</a>
+            <a href="https://www.instagram.com/kartarr_02/" target="_blank" rel="noreferrer" style={{fontSize:13,color:"#C13584",textDecoration:"none"}}>📸 Instagram: @kartarr_02</a>
+            <a href="https://www.youtube.com/@karangtarunarw02kalisari70" target="_blank" rel="noreferrer" style={{fontSize:13,color:"#FF0000",textDecoration:"none"}}>▶️ YouTube: Karang Taruna RW 02 Kalisari</a>
+            <a href="https://www.tiktok.com/@karangtarunarw02kalisari" target="_blank" rel="noreferrer" style={{fontSize:13,color:"#1a1a18",textDecoration:"none"}}>🎵 TikTok: @karangtarunarw02kalisari</a>
+            <a href="mailto:karangtarunarukunwarga02@gmail.com" style={{fontSize:13,color:"#185FA5",textDecoration:"none"}}>✉️ karangtarunarukunwarga02@gmail.com</a>
           </div>
         </div>
       </div>
@@ -966,15 +970,15 @@ function Footer({ setPage }) {
           <p style={{fontSize:13,lineHeight:1.8,color:"#888780",margin:"0 0 16px",maxWidth:300}}>
             Organisasi kepemudaan RW 02 Kalisari, Kec. Pasar Rebo, Jakarta Timur. Aktif sejak 2019 dalam bidang sosial, seni, olahraga, dan pendidikan.
           </p>
-          <div style={{display:"flex",gap:10}}>
+          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
             <a href="https://www.instagram.com/kartarr_02/" target="_blank" rel="noreferrer"
-              style={{background:"#2a2a28",color:"#ccc",padding:"7px 14px",borderRadius:8,textDecoration:"none",fontSize:12}}>
-              Instagram
-            </a>
+              style={{background:"#2a2a28",color:"#ccc",padding:"7px 12px",borderRadius:8,textDecoration:"none",fontSize:12}}>📸 Instagram</a>
             <a href="https://www.youtube.com/@karangtarunarw02kalisari70" target="_blank" rel="noreferrer"
-              style={{background:"#2a2a28",color:"#ccc",padding:"7px 14px",borderRadius:8,textDecoration:"none",fontSize:12}}>
-              YouTube
-            </a>
+              style={{background:"#2a2a28",color:"#ccc",padding:"7px 12px",borderRadius:8,textDecoration:"none",fontSize:12}}>▶️ YouTube</a>
+            <a href="https://www.tiktok.com/@karangtarunarw02kalisari" target="_blank" rel="noreferrer"
+              style={{background:"#2a2a28",color:"#ccc",padding:"7px 12px",borderRadius:8,textDecoration:"none",fontSize:12}}>🎵 TikTok</a>
+            <a href="mailto:karangtarunarukunwarga02@gmail.com"
+              style={{background:"#2a2a28",color:"#ccc",padding:"7px 12px",borderRadius:8,textDecoration:"none",fontSize:12}}>✉️ Email</a>
           </div>
         </div>
 
