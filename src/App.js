@@ -1313,7 +1313,7 @@ function AdminGaleri({ data, save }) {
       let all = [], pageToken = "";
       do {
         const res = await fetch(
-          `https://www.googleapis.com/drive/v3/files?q='${id}'+in+parents+and+mimeType+contains+'image/'+and+trashed=false&fields=nextPageToken,files(id,name,thumbnailLink)&pageSize=100&key=${apiKey}${pageToken?`&pageToken=${pageToken}`:""}`
+          `https://www.googleapis.com/drive/v3/files?q='${id}'+in+parents+and+mimeType+contains+'image/'+and+trashed=false&fields=nextPageToken,files(id,name)&pageSize=100&key=${apiKey}${pageToken?`&pageToken=${pageToken}`:""}`
         );
         if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || "Gagal mengambil data"); }
         const json = await res.json();
@@ -1390,7 +1390,7 @@ function AdminGaleri({ data, save }) {
                   <div key={p.id} onClick={()=>toggleSelect(p.id)}
                     style={{position:"relative",aspectRatio:"1",borderRadius:6,overflow:"hidden",cursor:"pointer",
                       outline:selected[p.id]?"3px solid #185FA5":"2px solid transparent",outlineOffset:1}}>
-                    <img src={p.thumbnailLink} alt={p.name} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} />
+                    <img src={`https://drive.google.com/thumbnail?id=${p.id}&sz=w200`} alt={p.name} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} />
                     {selected[p.id] && (
                       <div style={{position:"absolute",top:4,right:4,width:18,height:18,borderRadius:"50%",background:"#185FA5",display:"flex",alignItems:"center",justifyContent:"center"}}>
                         <span style={{color:"#fff",fontSize:11,lineHeight:1}}>✓</span>
