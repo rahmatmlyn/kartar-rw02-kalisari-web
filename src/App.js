@@ -158,14 +158,12 @@ function Beranda({ data, setPage }) {
     { icon:"💼", label:"Kewirausahaan", desc:"Pemberdayaan ekonomi pemuda melalui program wirausaha mandiri", color:"#FAEEDA", tc:"#854F0B" },
   ];
   const timeline = [
-    { tahun:"2019", label:"Berdiri", desc:"Karang Taruna RW 02 resmi dibentuk dengan 20 anggota perdana" },
-    { tahun:"2020", label:"Berkembang", desc:"Program sosial perdana di masa pandemi, distribusi sembako ke warga terdampak" },
-    { tahun:"2021", label:"Berinovasi", desc:"Peluncuran program pelatihan digital dan media sosial organisasi" },
-    { tahun:"2022", label:"Berprestasi", desc:"Raih 2 penghargaan tingkat kecamatan dan kota" },
-    { tahun:"2023", label:"Terbaik", desc:"Dinobatkan Karang Taruna Terbaik Kelurahan Kalisari" },
-    { tahun:"2024", label:"Terus Bergerak", desc:"50+ program terlaksana, 85+ anggota aktif, dampak semakin luas" },
-    { tahun:"2025", label:"Regenerasi", desc:"Pergantian kepengurusan baru, semangat baru untuk RW 02 Kalisari" },
-    { tahun:"2026", label:"Melangkah Maju", desc:"Memperluas program dan kolaborasi demi kemajuan pemuda RW 02" },
+    { tahun:"2021", label:"Terbentuk", desc:"Karang Taruna RW 02 resmi dibentuk dari keresahan Pemuda dan Keadaan" },
+    { tahun:"2022", label:"Terus Bergerak", desc:"Bermunculan program-program inovatif untuk masyarakat" },
+    { tahun:"2023", label:"Berprestasi", desc:"Berprestasi dalam aksi sosial dan kemanusiaan" },
+    { tahun:"2024", label:"Regenerasi", desc:"Pergantian kepengurusan baru, semangat baru untuk RW 02 Kalisari" },
+    { tahun:"2025", label:"Melangkah Maju", desc:"Memperluas program dan kolaborasi demi kemajuan pemuda RW 02" },
+    { tahun:"2026", label:"Berinovasi", desc:"Peluncuran program baru yang berfokus pada inovasi dan teknologi" },
   ];
 
   return (
@@ -259,8 +257,8 @@ function Beranda({ data, setPage }) {
           <h2 style={{fontSize:20,fontWeight:500,margin:0,color:"#1a1a18"}}>5 tahun penuh dedikasi</h2>
         </div>
         {/* Horizontal scrollable timeline */}
-        <div style={{overflowX:"auto",paddingBottom:8}}>
-          <div style={{display:"flex",alignItems:"flex-end",minWidth:"max-content",padding:"0 40px",position:"relative"}}>
+        <div style={{overflowX:"auto",paddingBottom:8,display:"flex",justifyContent:"center"}}>
+          <div style={{display:"flex",alignItems:"flex-end",padding:"0 40px",position:"relative"}}>
             {/* Single horizontal line behind all dots */}
             <div style={{position:"absolute",bottom:20,left:40,right:40,height:1.5,background:"#d4d4d0",zIndex:0}} />
             {timeline.map((t)=>(
