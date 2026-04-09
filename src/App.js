@@ -1336,7 +1336,7 @@ function AdminGaleri({ data, save }) {
       .filter(p => selected[p.id])
       .map((p,i) => ({
         id: Date.now()+i,
-        url: `https://drive.google.com/uc?export=view&id=${p.id}`,
+        url: `https://lh3.googleusercontent.com/d/${p.id}`,
         caption: p.name.replace(/\.[^.]+$/, ""),
         tahun,
       }));
@@ -1390,7 +1390,7 @@ function AdminGaleri({ data, save }) {
                   <div key={p.id} onClick={()=>toggleSelect(p.id)}
                     style={{position:"relative",aspectRatio:"1",borderRadius:6,overflow:"hidden",cursor:"pointer",
                       outline:selected[p.id]?"3px solid #185FA5":"2px solid transparent",outlineOffset:1}}>
-                    <img src={`https://drive.google.com/thumbnail?id=${p.id}&sz=w200`} alt={p.name} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} />
+                    <img src={`https://lh3.googleusercontent.com/d/${p.id}=w200`} alt={p.name} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} />
                     {selected[p.id] && (
                       <div style={{position:"absolute",top:4,right:4,width:18,height:18,borderRadius:"50%",background:"#185FA5",display:"flex",alignItems:"center",justifyContent:"center"}}>
                         <span style={{color:"#fff",fontSize:11,lineHeight:1}}>✓</span>
