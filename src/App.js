@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { getData, saveData as fbSave, getPengurus, kirimFeedback, subscribeFeedback, hapusFeedback, uploadFoto } from "./firebase";
 
 const ADMIN_PASS = process.env.REACT_APP_ADMIN_PASSWORD;
@@ -11,6 +11,193 @@ function useIsMobile() {
     return () => window.removeEventListener("resize", handler);
   }, []);
   return isMobile;
+}
+
+function useScrolled(threshold = 10) {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const handler = () => setScrolled(window.scrollY > threshold);
+    window.addEventListener("scroll", handler, { passive: true });
+    return () => window.removeEventListener("scroll", handler);
+  }, [threshold]);
+  return scrolled;
+}
+
+function useInView(threshold = 0.15) {
+  const ref = useRef(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { setInView(true); obs.disconnect(); }
+    }, { threshold });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [threshold]);
+  return [ref, inView];
+}
+
+function AnimatedNum({ target, active, duration = 1400 }) {
+  const [count, setCount] = useState(0);
+  const num = parseInt(String(target).replace(/\D/g, "")) || 0;
+  const suffix = String(target).replace(/[\d]/g, "");
+  useEffect(() => {
+    if (!active || !num) return;
+    let cur = 0;
+    const step = num / (duration / 16);
+    const timer = setInterval(() => {
+      cur += step;
+      if (cur >= num) { setCount(num); clearInterval(timer); }
+      else setCount(Math.floor(cur));
+    }, 16);
+    return () => clearInterval(timer);
+  }, [active, num, duration]);
+  return <>{num ? `${count}${suffix}` : target}</>;
+}
+
+// ── SOCIAL ICONS ─────────────────────────────────────────────────────
+function IgIcon({ size=18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{flexShrink:0}}>
+      <rect width="24" height="24" rx="6" fill="url(#ig-grad)"/>
+      <rect x="6.5" y="6.5" width="11" height="11" rx="3.2" stroke="white" strokeWidth="1.8" fill="none"/>
+      <circle cx="12" cy="12" r="3" stroke="white" strokeWidth="1.8" fill="none"/>
+      <circle cx="16.7" cy="7.3" r="1.2" fill="white"/>
+    </svg>
+  );
+}
+function YtIcon({ size=18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" style={{flexShrink:0}}>
+      <rect width="24" height="24" rx="5" fill="#FF0000"/>
+      <path d="M10 8.5l6 3.5-6 3.5V8.5z" fill="white"/>
+    </svg>
+  );
+}
+function TtIcon({ size=18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" style={{flexShrink:0}}>
+      <rect width="24" height="24" rx="5" fill="#010101"/>
+      <path d="M16 5.5c.4 1.6 1.6 2.8 3 3.2v2.6c-1.1-.1-2.1-.5-3-.9v5.4A4.3 4.3 0 1 1 11.7 11v2.7a1.7 1.7 0 1 0 1.7 1.7V5.5H16z" fill="white"/>
+    </svg>
+  );
+}
+function GmailIcon({ size=18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" style={{flexShrink:0}}>
+      <rect width="24" height="24" rx="5" fill="#fff"/>
+      <path d="M4 7h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7z" fill="#F2F2F2"/>
+      <path d="M4 7l8 6.5L20 7" stroke="#EA4335" strokeWidth="1.5" fill="none"/>
+      <path d="M4 7v.5l8 6 8-6V7H4z" fill="#EA4335"/>
+      <path d="M4 7.5V18h3V11l5 3.5 5-3.5v7h3V7.5l-8 6-8-6z" fill="#4285F4"/>
+      <path d="M4 7.5L12 13.5l8-6" fill="#EA4335"/>
+    </svg>
+  );
+}
+
+function GlobalStyles() {
+  return (
+    <>
+    <svg width="0" height="0" style={{position:"absolute",pointerEvents:"none"}}>
+      <defs>
+        <linearGradient id="ig-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#FFDC80"/>
+          <stop offset="20%" stopColor="#FCAF45"/>
+          <stop offset="40%" stopColor="#F77737"/>
+          <stop offset="60%" stopColor="#E1306C"/>
+          <stop offset="80%" stopColor="#C13584"/>
+          <stop offset="100%" stopColor="#833AB4"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <style>{`
+      @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(22px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes scaleIn {
+        from { opacity: 0; transform: scale(0.96); }
+        to { opacity: 1; transform: scale(1); }
+      }
+      .page-enter { animation: fadeIn 0.35s ease both; }
+      .fade-up { animation: fadeUp 0.55s ease both; }
+      .hover-lift {
+        transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease !important;
+      }
+      .hover-lift:hover {
+        transform: translateY(-5px) !important;
+        box-shadow: 0 14px 36px rgba(24,95,165,0.13) !important;
+        border-color: #185FA5 !important;
+      }
+      .hover-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+      }
+      .hover-card:hover {
+        transform: translateY(-3px) !important;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.09) !important;
+      }
+      .hover-img-zoom { overflow: hidden; }
+      .hover-img-zoom img {
+        transition: transform 0.38s ease !important;
+        display: block;
+      }
+      .hover-img-zoom:hover img { transform: scale(1.07) !important; }
+      .timeline-item {
+        transition: transform 0.2s ease !important;
+      }
+      .timeline-item:hover { transform: translateY(-5px) !important; }
+      .timeline-dot {
+        transition: transform 0.2s ease, background 0.2s ease !important;
+      }
+      .timeline-item:hover .timeline-dot {
+        transform: scale(1.18) !important;
+        background: #C8922A !important;
+      }
+      .galeri-item { overflow: hidden; }
+      .galeri-item img {
+        transition: transform 0.35s ease !important;
+        display: block;
+      }
+      .galeri-item:hover img { transform: scale(1.08) !important; }
+      .galeri-item:hover .galeri-caption { opacity: 1 !important; }
+      .social-btn {
+        transition: all 0.18s ease !important;
+      }
+      .social-btn:hover {
+        background: rgba(255,255,255,0.25) !important;
+        transform: translateY(-2px) !important;
+      }
+      .nav-btn {
+        transition: all 0.15s ease !important;
+        position: relative;
+      }
+      .filter-btn {
+        transition: all 0.18s ease !important;
+      }
+      .filter-btn:hover { opacity: 0.85; }
+      .hover-bidang {
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease !important;
+      }
+      .hover-bidang:hover {
+        transform: translateY(-4px) !important;
+        box-shadow: 0 10px 28px rgba(0,0,0,0.09) !important;
+        border-color: #185FA5 !important;
+      }
+      .hover-bidang:hover .bidang-icon {
+        transform: scale(1.12) !important;
+      }
+      .bidang-icon {
+        transition: transform 0.2s ease !important;
+      }
+      input, textarea, select { font-family: inherit; }
+    `}</style>
+    </>
+  );
 }
 
 const initData = {
@@ -101,35 +288,57 @@ function TingkatBadge({ t }) {
 function Navbar({ page, setPage, isAdmin, setMode }) {
   const nav = ["Beranda","Profil","Kegiatan","Galeri","Pengurus","Penghargaan","Kontak"];
   const isMobile = useIsMobile();
+  const scrolled = useScrolled(8);
   const [open, setOpen] = useState(false);
   const go = (n) => { setPage(n); setOpen(false); };
   return (
-    <nav style={{background:"#fff",borderBottom:"2px solid #C8922A",position:"sticky",top:0,zIndex:100}}>
+    <nav style={{
+      background:"#fff",
+      borderBottom:"2px solid #C8922A",
+      position:"sticky",top:0,zIndex:100,
+      boxShadow: scrolled ? "0 4px 20px rgba(0,0,0,0.08)" : "none",
+      transition:"box-shadow 0.25s ease"
+    }}>
       <div style={{maxWidth:1100,margin:"0 auto",padding:"0 16px",display:"flex",alignItems:"center",justifyContent:"space-between",height:54}}>
         <div style={{display:"flex",alignItems:"center",gap:9}}>
-          <img src="/logo-kartar.png" alt="Logo Kartar RW 02" style={{width:36,height:36,objectFit:"contain"}} />
+          <img src="/logo-kartar.png" alt="Logo Kartar RW 02" style={{width:36,height:36,objectFit:"contain",transition:"transform 0.2s"}} />
           <span style={{fontWeight:500,fontSize:isMobile?11:13,color:"#1a1a18"}}>{isMobile?"Kartar RW 02":"Karang Taruna Unit RW 02 Kalisari"}</span>
         </div>
         {isMobile ? (
           <button onClick={()=>setOpen(!open)} style={{background:"none",border:"none",cursor:"pointer",padding:8,display:"flex",flexDirection:"column",gap:5}}>
-            <span style={{display:"block",width:22,height:2,background:"#1a1a18",borderRadius:2,transition:"all 0.2s"}} />
-            <span style={{display:"block",width:22,height:2,background:"#1a1a18",borderRadius:2,transition:"all 0.2s"}} />
-            <span style={{display:"block",width:22,height:2,background:"#1a1a18",borderRadius:2,transition:"all 0.2s"}} />
+            <span style={{display:"block",width:22,height:2,background:"#1a1a18",borderRadius:2,transition:"all 0.25s",transform:open?"rotate(45deg) translate(5px,5px)":"none"}} />
+            <span style={{display:"block",width:22,height:2,background:"#1a1a18",borderRadius:2,transition:"all 0.25s",opacity:open?0:1}} />
+            <span style={{display:"block",width:22,height:2,background:"#1a1a18",borderRadius:2,transition:"all 0.25s",transform:open?"rotate(-45deg) translate(5px,-5px)":"none"}} />
           </button>
         ) : (
           <div style={{display:"flex",gap:2,alignItems:"center"}}>
             {nav.map(n=>(
-              <button key={n} onClick={()=>setPage(n)} style={{background:page===n?"#E8F0FB":"transparent",color:page===n?"#0D4A8A":"#5F5E5A",border:"none",padding:"5px 10px",borderRadius:6,cursor:"pointer",fontSize:12,fontWeight:page===n?500:400}}>{n}</button>
+              <button key={n} onClick={()=>setPage(n)} className="nav-btn" style={{
+                background:"transparent",
+                color:page===n?"#0D4A8A":"#5F5E5A",
+                border:"none",padding:"5px 10px",borderRadius:6,cursor:"pointer",
+                fontSize:12,fontWeight:page===n?600:400
+              }}>
+                {n}
+                {page===n && <span style={{position:"absolute",bottom:"-2px",left:"50%",transform:"translateX(-50%)",width:"70%",height:2,background:"#185FA5",borderRadius:2,display:"block"}} />}
+              </button>
             ))}
             {isAdmin
-              ? <button onClick={()=>setMode("admin")} style={{marginLeft:6,background:"#C8922A",color:"#fff",border:"none",padding:"6px 12px",borderRadius:6,cursor:"pointer",fontSize:12}}>Panel Admin</button>
-              : <button onClick={()=>setMode("login")} style={{marginLeft:6,background:"transparent",color:"#5F5E5A",border:"0.5px solid #ccc",padding:"6px 12px",borderRadius:6,cursor:"pointer",fontSize:12}}>Admin</button>
+              ? <button onClick={()=>setMode("admin")} style={{marginLeft:6,background:"#C8922A",color:"#fff",border:"none",padding:"6px 12px",borderRadius:6,cursor:"pointer",fontSize:12,transition:"all 0.15s"}} className="hover-card">Panel Admin</button>
+              : <button onClick={()=>setMode("login")} style={{marginLeft:6,background:"transparent",color:"#5F5E5A",border:"0.5px solid #ccc",padding:"6px 12px",borderRadius:6,cursor:"pointer",fontSize:12}} className="hover-card">Admin</button>
             }
           </div>
         )}
       </div>
-      {isMobile && open && (
-        <div style={{background:"#fff",borderTop:"0.5px solid #e8e8e5",padding:"12px 16px",display:"flex",flexDirection:"column",gap:2}}>
+      {isMobile && (
+        <div style={{
+          background:"#fff",borderTop:"0.5px solid #e8e8e5",
+          padding: open ? "12px 16px" : "0 16px",
+          display:"flex",flexDirection:"column",gap:2,
+          maxHeight: open ? "500px" : "0",
+          overflow:"hidden",
+          transition:"max-height 0.3s ease, padding 0.3s ease"
+        }}>
           {nav.map(n=>(
             <button key={n} onClick={()=>go(n)} style={{background:page===n?"#E8F0FB":"transparent",color:page===n?"#0D4A8A":"#5F5E5A",border:"none",padding:"10px 12px",borderRadius:6,cursor:"pointer",fontSize:14,fontWeight:page===n?500:400,textAlign:"left"}}>{n}</button>
           ))}
@@ -148,6 +357,7 @@ function Navbar({ page, setPage, isAdmin, setMode }) {
 // ── BERANDA (REDESIGNED) ──────────────────────────────────────────────
 function Beranda({ data, setPage }) {
   const isMobile = useIsMobile();
+  const [factsRef, factsInView] = useInView(0.3);
   const recent = [...data.kegiatan].sort((a,b)=>b.tanggal.localeCompare(a.tanggal)).slice(0,3);
   const bidang = [
     { icon:"🤝", label:"Sosial & Kemasyarakatan", desc:"Bakti sosial, santunan, dan program kemanusiaan untuk warga RW 02", color:"#FAECE7", tc:"#993C1D" },
@@ -238,10 +448,10 @@ function Beranda({ data, setPage }) {
             <h2 style={{fontSize:20,fontWeight:500,margin:0,color:"#1a1a18"}}>Apa yang kami lakukan</h2>
             <p style={{fontSize:13,color:"#888780",marginTop:6}}>Enam bidang utama yang menjadi fokus gerakan Karang Taruna RW 02</p>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:12}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,280px))",gap:12,justifyContent:"center"}}>
             {bidang.map(b=>(
-              <div key={b.label} style={{background:"#fff",borderRadius:12,padding:18,border:"0.5px solid #e8e8e5"}}>
-                <div style={{width:38,height:38,borderRadius:10,background:b.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,marginBottom:12}}>{b.icon}</div>
+              <div key={b.label} className="hover-bidang" style={{background:"#fff",borderRadius:12,padding:18,border:"0.5px solid #e8e8e5",textAlign:"center"}}>
+                <div className="bidang-icon" style={{width:38,height:38,borderRadius:10,background:b.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,marginBottom:12,margin:"0 auto 12px"}}>{b.icon}</div>
                 <div style={{fontWeight:500,fontSize:13,color:"#1a1a18",marginBottom:5}}>{b.label}</div>
                 <div style={{fontSize:12,color:"#888780",lineHeight:1.6}}>{b.desc}</div>
               </div>
@@ -262,16 +472,16 @@ function Beranda({ data, setPage }) {
             {/* Single horizontal line behind all dots */}
             <div style={{position:"absolute",bottom:20,left:40,right:40,height:1.5,background:"#d4d4d0",zIndex:0}} />
             {timeline.map((t)=>(
-              <div key={t.tahun} style={{display:"flex",flexDirection:"column",alignItems:"center",width:190,flexShrink:0,zIndex:1}}>
+              <div key={t.tahun} className="timeline-item" style={{display:"flex",flexDirection:"column",alignItems:"center",width:190,flexShrink:0,zIndex:1}}>
                 {/* Card */}
-                <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:10,padding:"12px 14px",width:"100%",boxSizing:"border-box",minHeight:90}}>
+                <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:10,padding:"12px 14px",width:"100%",boxSizing:"border-box",minHeight:90,transition:"box-shadow 0.2s ease"}}>
                   <div style={{fontWeight:600,fontSize:13,color:"#1a1a18",marginBottom:4}}>{t.label}</div>
                   <div style={{fontSize:11,color:"#5F5E5A",lineHeight:1.6}}>{t.desc}</div>
                 </div>
                 {/* Vertical line */}
                 <div style={{width:1.5,height:24,background:"#d4d4d0"}} />
                 {/* Dot */}
-                <div style={{width:40,height:40,borderRadius:"50%",background:"#185FA5",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:600,flexShrink:0}}>
+                <div className="timeline-dot" style={{width:40,height:40,borderRadius:"50%",background:"#185FA5",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:600,flexShrink:0}}>
                   {t.tahun.slice(2)}
                 </div>
               </div>
@@ -292,8 +502,10 @@ function Beranda({ data, setPage }) {
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:14}}>
             {recent.map((k,i)=>(
-              <div key={k.id} style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,overflow:"hidden",display:"flex",flexDirection:i===0?"column":"column"}}>
-                <img src={k.foto} alt={k.judul} style={{width:"100%",height:160,objectFit:"cover",display:"block"}} />
+              <div key={k.id} className="hover-card" style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,overflow:"hidden",display:"flex",flexDirection:i===0?"column":"column"}}>
+                <div className="hover-img-zoom" style={{height:160,overflow:"hidden"}}>
+                  <img src={k.foto} alt={k.judul} style={{width:"100%",height:160,objectFit:"cover"}} />
+                </div>
                 <div style={{padding:16}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
                     <Badge kat={k.kategori} />
@@ -320,7 +532,7 @@ function Beranda({ data, setPage }) {
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:14}}>
           {data.penghargaan.map(p=>(
-            <div key={p.id} style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:20,display:"flex",gap:14,alignItems:"flex-start"}}>
+            <div key={p.id} className="hover-lift" style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:20,display:"flex",gap:14,alignItems:"flex-start"}}>
               <div style={{width:44,height:44,borderRadius:10,background:"#FAEEDA",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>🏆</div>
               <div>
                 <div style={{fontWeight:500,fontSize:13,color:"#1a1a18",marginBottom:4,lineHeight:1.4}}>{p.judul}</div>
@@ -466,17 +678,19 @@ function Beranda({ data, setPage }) {
 
       {/* ── FUN FACTS ── */}
       {data.funfacts?.length > 0 && (
-        <div style={{background:"#0D4A8A",padding:"36px 20px"}}>
+        <div ref={factsRef} style={{background:"#0D4A8A",padding:"36px 20px"}}>
           <div style={{maxWidth:1100,margin:"0 auto"}}>
             <div style={{textAlign:"center",marginBottom:24}}>
               <div style={{fontSize:10,color:"#C8922A",fontWeight:600,letterSpacing:1.2,textTransform:"uppercase",marginBottom:6}}>Tahukah kamu?</div>
               <h2 style={{color:"#fff",fontWeight:500,fontSize:18,margin:0}}>Fun Fact Karang Taruna RW 02</h2>
             </div>
-            <div style={{display:"grid",gridTemplateColumns:`repeat(auto-fit,minmax(150px,1fr))`,gap:10}}>
+            <div style={{display:"flex",flexWrap:"wrap",gap:10,justifyContent:"center"}}>
               {data.funfacts.map(f=>(
-                <div key={f.id} style={{background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:10,padding:"18px 14px",textAlign:"center"}}>
-                  <div style={{fontSize:24,marginBottom:6}}>{f.emoji}</div>
-                  <div style={{fontSize:22,fontWeight:700,color:"#C8922A",lineHeight:1}}>{f.angka}</div>
+                <div key={f.id} className="hover-card" style={{background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:10,padding:"18px 14px",textAlign:"center",transition:"background 0.2s,transform 0.2s",width:190,flexShrink:0}}>
+                  <div style={{fontSize:28,marginBottom:6,transition:"transform 0.2s"}}>{f.emoji}</div>
+                  <div style={{fontSize:24,fontWeight:700,color:"#C8922A",lineHeight:1}}>
+                    <AnimatedNum target={f.angka} active={factsInView} />
+                  </div>
                   <div style={{fontSize:11,color:"rgba(255,255,255,0.75)",marginTop:6,lineHeight:1.4}}>{f.label}</div>
                 </div>
               ))}
@@ -492,10 +706,10 @@ function Beranda({ data, setPage }) {
           <h2 style={{fontWeight:500,fontSize:20,margin:"0 0 8px"}}>Update kegiatan terkini</h2>
           <p style={{fontSize:13,opacity:0.8,margin:"0 0 24px"}}>Saksikan momen-momen berharga Karang Taruna RW 02 di media sosial kami.</p>
           <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
-            <a href="https://www.instagram.com/kartarr_02/" target="_blank" rel="noreferrer" style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",borderRadius:8,padding:"10px 20px",textDecoration:"none",fontSize:13,fontWeight:500}}>📸 Instagram</a>
-            <a href="https://www.youtube.com/@karangtarunarw02kalisari70" target="_blank" rel="noreferrer" style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",borderRadius:8,padding:"10px 20px",textDecoration:"none",fontSize:13,fontWeight:500}}>▶️ YouTube</a>
-            <a href="https://www.tiktok.com/@karangtarunarw02kalisari" target="_blank" rel="noreferrer" style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",borderRadius:8,padding:"10px 20px",textDecoration:"none",fontSize:13,fontWeight:500}}>🎵 TikTok</a>
-            <a href="mailto:karangtarunarukunwarga02@gmail.com" style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",borderRadius:8,padding:"10px 20px",textDecoration:"none",fontSize:13,fontWeight:500}}>✉️ Email</a>
+            <a href="https://www.instagram.com/kartarr_02/" target="_blank" rel="noreferrer" className="social-btn" style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",borderRadius:8,padding:"10px 20px",textDecoration:"none",fontSize:13,fontWeight:500,display:"flex",alignItems:"center",gap:8}}><IgIcon size={18}/> Instagram</a>
+            <a href="https://www.youtube.com/@karangtarunarw02kalisari70" target="_blank" rel="noreferrer" className="social-btn" style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",borderRadius:8,padding:"10px 20px",textDecoration:"none",fontSize:13,fontWeight:500,display:"flex",alignItems:"center",gap:8}}><YtIcon size={18}/> YouTube</a>
+            <a href="https://www.tiktok.com/@karangtarunarw02kalisari" target="_blank" rel="noreferrer" className="social-btn" style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",borderRadius:8,padding:"10px 20px",textDecoration:"none",fontSize:13,fontWeight:500,display:"flex",alignItems:"center",gap:8}}><TtIcon size={18}/> TikTok</a>
+            <a href="mailto:karangtarunarukunwarga02@gmail.com" className="social-btn" style={{background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",borderRadius:8,padding:"10px 20px",textDecoration:"none",fontSize:13,fontWeight:500,display:"flex",alignItems:"center",gap:8}}><GmailIcon size={18}/> Email</a>
           </div>
         </div>
       </div>
@@ -605,8 +819,8 @@ function KegiatanCard({ k, fotos }) {
   const prev = e => { e.stopPropagation(); setIdx(i => (i-1+fotos.length)%fotos.length); };
   const next = e => { e.stopPropagation(); setIdx(i => (i+1)%fotos.length); };
   return (
-    <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,overflow:"hidden"}}>
-      <div style={{position:"relative",height:180}}>
+    <div className="hover-card" style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,overflow:"hidden"}}>
+      <div className="hover-img-zoom" style={{position:"relative",height:180,overflow:"hidden"}}>
         {fotos.length > 0
           ? <img src={fotos[idx]} alt={k.judul} style={{width:"100%",height:180,objectFit:"cover",display:"block"}} />
           : <div style={{width:"100%",height:180,background:"#f0f0ee",display:"flex",alignItems:"center",justifyContent:"center",color:"#ccc",fontSize:13}}>Tidak ada foto</div>
@@ -669,32 +883,67 @@ function Galeri({ data }) {
   const [tahun, setTahun] = useState("Semua");
   const tahunList = ["Semua", ...new Set(data.galeri.map(g => g.tahun).filter(Boolean).sort((a,b)=>b-a))];
   const filtered = tahun==="Semua" ? data.galeri : data.galeri.filter(g => g.tahun===tahun);
+  const selIdx = filtered.findIndex(g => g.id === sel?.id);
+  const goPrev = useCallback(() => { if (selIdx > 0) setSel(filtered[selIdx-1]); }, [selIdx, filtered]);
+  const goNext = useCallback(() => { if (selIdx < filtered.length-1) setSel(filtered[selIdx+1]); }, [selIdx, filtered]);
+
+  useEffect(() => {
+    if (!sel) return;
+    const handler = (e) => {
+      if (e.key === "ArrowLeft") goPrev();
+      else if (e.key === "ArrowRight") goNext();
+      else if (e.key === "Escape") setSel(null);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [sel, goPrev, goNext]);
+
   return (
     <div style={{maxWidth:1100,margin:"0 auto",padding:"40px 20px"}}>
       <h2 style={{fontWeight:500,margin:"0 0 6px"}}>Galeri foto</h2>
       <p style={{color:"#888780",marginBottom:24,fontSize:14}}>Momen-momen berharga dalam perjalanan 5 tahun kami</p>
       <div style={{display:"flex",gap:8,marginBottom:20,flexWrap:"wrap"}}>
         {tahunList.map(t=>(
-          <button key={t} onClick={()=>setTahun(t)} style={{background:tahun===t?"#C8922A":"#fff",color:tahun===t?"#fff":"#5F5E5A",border:"0.5px solid",borderColor:tahun===t?"#C8922A":"#ddd",padding:"5px 12px",borderRadius:20,cursor:"pointer",fontSize:12}}>{t}</button>
+          <button key={t} onClick={()=>setTahun(t)} className="filter-btn" style={{background:tahun===t?"#C8922A":"#fff",color:tahun===t?"#fff":"#5F5E5A",border:"0.5px solid",borderColor:tahun===t?"#C8922A":"#ddd",padding:"5px 12px",borderRadius:20,cursor:"pointer",fontSize:12}}>{t}</button>
         ))}
       </div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:10}}>
         {filtered.map(g=>(
-          <div key={g.id} onClick={()=>setSel(g)} style={{borderRadius:10,overflow:"hidden",cursor:"pointer",aspectRatio:"1",position:"relative"}}>
+          <div key={g.id} className="galeri-item" onClick={()=>setSel(g)} style={{borderRadius:10,overflow:"hidden",cursor:"pointer",aspectRatio:"1",position:"relative"}}>
             <img src={g.url} alt={g.caption} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}} />
-            <div style={{position:"absolute",bottom:0,left:0,right:0,background:"linear-gradient(transparent,rgba(0,0,0,0.5))",padding:"8px",color:"#fff",fontSize:11}}>{g.caption}</div>
+            <div style={{position:"absolute",bottom:0,left:0,right:0,background:"linear-gradient(transparent,rgba(0,0,0,0.6))",padding:"24px 10px 10px",color:"#fff",fontSize:11,lineHeight:1.4,transition:"opacity 0.25s",opacity:0}} className="galeri-caption">{g.caption}</div>
           </div>
         ))}
       </div>
       {sel && (
-        <div onClick={()=>setSel(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.8)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:999,padding:20}}>
-          <div onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:12,overflow:"hidden",maxWidth:600,width:"100%"}}>
-            <img src={sel.url} alt={sel.caption} style={{width:"100%",display:"block"}} />
-            <div style={{padding:"12px 16px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <span style={{fontSize:14,color:"#1a1a18"}}>{sel.caption}</span>
-              <button onClick={()=>setSel(null)} style={{background:"transparent",border:"none",cursor:"pointer",fontSize:18,color:"#888780"}}>✕</button>
+        <div onClick={()=>setSel(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.85)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:999,padding:20,animation:"fadeIn 0.2s ease"}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:16,overflow:"hidden",maxWidth:640,width:"100%",boxShadow:"0 24px 60px rgba(0,0,0,0.4)",position:"relative"}}>
+            <img src={sel.url} alt={sel.caption} style={{width:"100%",display:"block",maxHeight:"70vh",objectFit:"contain",background:"#000"}} />
+            <div style={{padding:"14px 16px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div>
+                <span style={{fontSize:14,fontWeight:500,color:"#1a1a18"}}>{sel.caption}</span>
+                {sel.tahun && <span style={{fontSize:12,color:"#888780",marginLeft:8}}>{sel.tahun}</span>}
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <span style={{fontSize:12,color:"#888780"}}>{selIdx+1} / {filtered.length}</span>
+                <button onClick={()=>setSel(null)} style={{background:"#F1EFE8",border:"none",cursor:"pointer",fontSize:16,color:"#5F5E5A",width:32,height:32,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
+              </div>
             </div>
           </div>
+          {/* Prev / Next arrows */}
+          {selIdx > 0 && (
+            <button onClick={e=>{e.stopPropagation();goPrev();}} style={{position:"fixed",left:16,top:"50%",transform:"translateY(-50%)",background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",width:44,height:44,borderRadius:"50%",cursor:"pointer",fontSize:22,display:"flex",alignItems:"center",justifyContent:"center",transition:"background 0.15s"}}
+              onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.3)"}
+              onMouseLeave={e=>e.currentTarget.style.background="rgba(255,255,255,0.15)"}
+            >‹</button>
+          )}
+          {selIdx < filtered.length-1 && (
+            <button onClick={e=>{e.stopPropagation();goNext();}} style={{position:"fixed",right:16,top:"50%",transform:"translateY(-50%)",background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",color:"#fff",width:44,height:44,borderRadius:"50%",cursor:"pointer",fontSize:22,display:"flex",alignItems:"center",justifyContent:"center",transition:"background 0.15s"}}
+              onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.3)"}
+              onMouseLeave={e=>e.currentTarget.style.background="rgba(255,255,255,0.15)"}
+            >›</button>
+          )}
+          <div style={{position:"fixed",bottom:16,left:"50%",transform:"translateX(-50%)",color:"rgba(255,255,255,0.6)",fontSize:12}}>← → untuk navigasi · ESC untuk tutup</div>
         </div>
       )}
     </div>
@@ -738,7 +987,7 @@ function Pengurus({ data }) {
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:12}}>
             {anggota.map(p => (
-              <div key={p.id} style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:18,display:"flex",alignItems:"center",gap:14}}>
+              <div key={p.id} className="hover-lift" style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:18,display:"flex",alignItems:"center",gap:14}}>
                 <Avatar nama={p.nama} size={50} />
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontWeight:500,fontSize:14,color:"#1a1a18",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.nama}</div>
@@ -790,7 +1039,7 @@ function Penghargaan({ data }) {
       {/* List */}
       <div style={{display:"flex",flexDirection:"column",gap:14}}>
         {sorted.map(p=>(
-          <div key={p.id} style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:22,display:"flex",gap:18,alignItems:"flex-start"}}>
+          <div key={p.id} className="hover-card" style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:22,display:"flex",gap:18,alignItems:"flex-start"}}>
             <div style={{width:56,height:56,borderRadius:12,background:"#FAEEDA",display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,flexShrink:0}}>🏆</div>
             <div style={{flex:1}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:8,marginBottom:6}}>
@@ -860,10 +1109,10 @@ function Kontak({ isAdmin }) {
         <div style={{background:"#fff",border:"0.5px solid #e2e2e0",borderRadius:12,padding:20}}>
           <div style={{fontWeight:500,marginBottom:10,color:"#1a1a18"}}>Media sosial</div>
           <div style={{display:"flex",flexDirection:"column",gap:8}}>
-            <a href="https://www.instagram.com/kartarr_02/" target="_blank" rel="noreferrer" style={{fontSize:13,color:"#C13584",textDecoration:"none"}}>📸 Instagram: @kartarr_02</a>
-            <a href="https://www.youtube.com/@karangtarunarw02kalisari70" target="_blank" rel="noreferrer" style={{fontSize:13,color:"#FF0000",textDecoration:"none"}}>▶️ YouTube: Karang Taruna RW 02 Kalisari</a>
-            <a href="https://www.tiktok.com/@karangtarunarw02kalisari" target="_blank" rel="noreferrer" style={{fontSize:13,color:"#1a1a18",textDecoration:"none"}}>🎵 TikTok: @karangtarunarw02kalisari</a>
-            <a href="mailto:karangtarunarukunwarga02@gmail.com" style={{fontSize:13,color:"#185FA5",textDecoration:"none"}}>✉️ karangtarunarukunwarga02@gmail.com</a>
+            <a href="https://www.instagram.com/kartarr_02/" target="_blank" rel="noreferrer" style={{fontSize:13,color:"#C13584",textDecoration:"none",display:"flex",alignItems:"center",gap:8}}><IgIcon size={18}/> @kartarr_02</a>
+            <a href="https://www.youtube.com/@karangtarunarw02kalisari70" target="_blank" rel="noreferrer" style={{fontSize:13,color:"#FF0000",textDecoration:"none",display:"flex",alignItems:"center",gap:8}}><YtIcon size={18}/> Karang Taruna RW 02 Kalisari</a>
+            <a href="https://www.tiktok.com/@karangtarunarw02kalisari" target="_blank" rel="noreferrer" style={{fontSize:13,color:"#1a1a18",textDecoration:"none",display:"flex",alignItems:"center",gap:8}}><TtIcon size={18}/> @karangtarunarw02kalisari</a>
+            <a href="mailto:karangtarunarukunwarga02@gmail.com" style={{fontSize:13,color:"#EA4335",textDecoration:"none",display:"flex",alignItems:"center",gap:8}}><GmailIcon size={18}/> karangtarunarukunwarga02@gmail.com</a>
           </div>
         </div>
       </div>
@@ -972,13 +1221,13 @@ function Footer({ setPage }) {
           </p>
           <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
             <a href="https://www.instagram.com/kartarr_02/" target="_blank" rel="noreferrer"
-              style={{background:"#2a2a28",color:"#ccc",padding:"7px 12px",borderRadius:8,textDecoration:"none",fontSize:12}}>📸 Instagram</a>
+              style={{background:"#2a2a28",color:"#ccc",padding:"7px 12px",borderRadius:8,textDecoration:"none",fontSize:12,display:"flex",alignItems:"center",gap:7}}><IgIcon size={16}/> Instagram</a>
             <a href="https://www.youtube.com/@karangtarunarw02kalisari70" target="_blank" rel="noreferrer"
-              style={{background:"#2a2a28",color:"#ccc",padding:"7px 12px",borderRadius:8,textDecoration:"none",fontSize:12}}>▶️ YouTube</a>
+              style={{background:"#2a2a28",color:"#ccc",padding:"7px 12px",borderRadius:8,textDecoration:"none",fontSize:12,display:"flex",alignItems:"center",gap:7}}><YtIcon size={16}/> YouTube</a>
             <a href="https://www.tiktok.com/@karangtarunarw02kalisari" target="_blank" rel="noreferrer"
-              style={{background:"#2a2a28",color:"#ccc",padding:"7px 12px",borderRadius:8,textDecoration:"none",fontSize:12}}>🎵 TikTok</a>
+              style={{background:"#2a2a28",color:"#ccc",padding:"7px 12px",borderRadius:8,textDecoration:"none",fontSize:12,display:"flex",alignItems:"center",gap:7}}><TtIcon size={16}/> TikTok</a>
             <a href="mailto:karangtarunarukunwarga02@gmail.com"
-              style={{background:"#2a2a28",color:"#ccc",padding:"7px 12px",borderRadius:8,textDecoration:"none",fontSize:12}}>✉️ Email</a>
+              style={{background:"#2a2a28",color:"#ccc",padding:"7px 12px",borderRadius:8,textDecoration:"none",fontSize:12,display:"flex",alignItems:"center",gap:7}}><GmailIcon size={16}/> Email</a>
           </div>
         </div>
 
@@ -1954,19 +2203,22 @@ export default function App() {
     await fbSave(nd);
   };
 
-  if(mode==="login") return <Login onBack={()=>setMode("public")} onSuccess={()=>{setIsAdmin(true);setMode("admin");}} />;
-  if(mode==="admin") return <div><Navbar page={page} setPage={setPage} isAdmin={isAdmin} setMode={setMode} /><AdminPanel data={data} setData={saveData} onLogout={()=>{setIsAdmin(false);setMode("public");}} /></div>;
+  if(mode==="login") return <><GlobalStyles /><Login onBack={()=>setMode("public")} onSuccess={()=>{setIsAdmin(true);setMode("admin");}} /></>;
+  if(mode==="admin") return <><GlobalStyles /><div><Navbar page={page} setPage={setPage} isAdmin={isAdmin} setMode={setMode} /><AdminPanel data={data} setData={saveData} onLogout={()=>{setIsAdmin(false);setMode("public");}} /></div></>;
 
   return (
     <div style={{background:"#FAFAF8",minHeight:"100vh"}}>
+      <GlobalStyles />
       <Navbar page={page} setPage={p=>{setPage(p);setMode("public");}} isAdmin={isAdmin} setMode={setMode} />
-      {page==="Beranda" && <Beranda data={data} setPage={setPage} />}
-      {page==="Profil" && <Profil data={data} />}
-      {page==="Kegiatan" && <Kegiatan data={data} />}
-      {page==="Galeri" && <Galeri data={data} />}
-      {page==="Pengurus" && <Pengurus data={data} />}
-      {page==="Penghargaan" && <Penghargaan data={data} />}
-      {page==="Kontak" && <Kontak isAdmin={isAdmin} />}
+      <div key={page} className="page-enter">
+        {page==="Beranda" && <Beranda data={data} setPage={setPage} />}
+        {page==="Profil" && <Profil data={data} />}
+        {page==="Kegiatan" && <Kegiatan data={data} />}
+        {page==="Galeri" && <Galeri data={data} />}
+        {page==="Pengurus" && <Pengurus data={data} />}
+        {page==="Penghargaan" && <Penghargaan data={data} />}
+        {page==="Kontak" && <Kontak isAdmin={isAdmin} />}
+      </div>
       <Footer setPage={setPage} />
     </div>
   );
